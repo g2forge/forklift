@@ -1,0 +1,64 @@
+#!/bin/bash
+set -eu -o pipefail
+
+function help () {
+	echo "$(basename ${0}): Trivial jack for built-in pallets"
+	echo
+	echo "Usage: $(basename ${0}) import|path|run builtin <pallet> current"
+	echo -e "\tcommands:"
+	echo -e "\t\timport:            Import the pallet (nop for the builtin jack)"
+	echo -e "\t\tpath:              Get the path of the specified pallet on the local machine"
+	echo -e "\t\trun <...> command: Run the specified command in the pallet"
+	echo
+}
+
+SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
+SELF=${SELF_DIR}/$(basename ${0})
+
+. ${SELF_DIR}/../../common/consoleformat
+. ${SELF_DIR}/../../common/util
+
+if [[ $# -lt 4 ]]; then
+	fail "Too few arguments, 4 (at least) are required!"
+fi
+
+COMMAND="${1}"
+WAREHOUSE="${2}"
+PALLET="${3}"
+VERSION="${4}"
+shift 4
+
+if [ "${WAREHOUSE}" != "builtin" ]; then
+	fail "Unknown warehouse \"${WAREHOUSE}\", expected \"builtin\""
+fi
+if [ "${VERSION}" != "current" ]; then
+	fail "Unknown version \"${VERSION}\", expected \"current\""
+fi
+
+case ${COMMAND} in
+	-h|--help|help)
+	help
+	;;
+	import)
+	if [[ $# -gt 0 ]]; then
+		fail "Too many arguments!"
+	fi
+	;;
+	path)
+	echo $(cd ${SELF_DIR}/../../${PALLET} && pwd -P)
+	if [[ $# -gt 0 ]]; then
+		fail "Too many arguments!"
+	fi
+	;;
+	run)
+	COMMAND=$(cd ${SELF_DIR}/../../${PALLET} && pwd -P)/${1}
+	shift
+	${COMMAND} $@
+	;;
+	delete)
+	fail "Cannot delete builtin pallets"
+	;;
+	*)
+	fail "Unknown command: ${COMMAND}"
+	;;
+esac

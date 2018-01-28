@@ -1,0 +1,18 @@
+#!/bin/bash
+set -eu -o pipefail
+
+function help () {
+	echo "$(basename ${0}): Install a package using the OS package manager"
+	echo
+	echo "Usage: $(basename ${0}) <package>*"
+	echo
+}
+
+SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
+SELF=${SELF_DIR}/$(basename ${0})
+
+. ${SELF_DIR}/consoleformat
+. ${SELF_DIR}/util
+
+INSTALL="${SELF_DIR}/../../builtin/package/$(${SELF_DIR}/osinfo -d)/install"
+${INSTALL} $@

@@ -1,0 +1,41 @@
+#!/bin/bash
+set -eu -o pipefail
+
+function help () {
+	echo "$(basename ${0}): A pallet (package) manager"
+	echo
+	echo "Usage: $(basename ${0}) import|path|run <warehouse> <pallet> <version>"
+	echo -e "\tcommands:"
+	echo -e "\t\timport:            Import the specific pallet to a local warehouse for consumption"
+	echo -e "\t\tpath:              Get the path of the specified pallet in the local warehouse"
+	echo -e "\t\trun <...> command: Run the specified command in the pallet"
+	echo
+}
+
+SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
+SELF=${SELF_DIR}/$(basename ${0})
+
+. ${SELF_DIR}/builtin/common/consoleformat
+. ${SELF_DIR}/builtin/common/util
+
+if [[ $# -lt 4 ]]; then
+	fail "Too few arguments, 4 (at least) are required!"
+fi
+
+COMMAND="${1}"
+WAREHOUSE="${2}"
+PALLET="${3}"
+VERSION="${4}"
+shift 4
+
+case ${COMMAND} in
+	-h|--help|help)
+	help
+	exit 0
+	;;
+	*)
+	;;
+esac
+
+JACK="${SELF_DIR}/builtin/jack/$(${SELF_DIR}/builtin/common/warehouse2jack ${WAREHOUSE})/jack"
+${JACK} ${COMMAND} ${WAREHOUSE} ${PALLET} ${VERSION} $@

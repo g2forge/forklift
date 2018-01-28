@@ -1,0 +1,6 @@
+function fail () {
+	echo -e "${CFMT_ERROR}${1}${CFMT_NORMAL}"
+	echo
+	help
+	exit 1
+}
