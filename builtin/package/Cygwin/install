@@ -1,0 +1,30 @@
+#!/bin/bash
+set -eu -o pipefail
+
+function help () {
+	echo "$(basename ${0}): Install packages on Cygwin"
+	echo
+	echo "Usage: $(basename ${0}) <package>*"
+	echo
+}
+
+SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
+SELF=${SELF_DIR}/$(basename ${0})
+
+. ${SELF_DIR}/../../common/consoleformat
+. ${SELF_DIR}/../../common/util
+
+if [[ $# -lt 1 ]]; then
+	fail "Too few arguments, 1 (at least) is required!"
+fi
+
+EXECUTABLE_NAME="setup-$(${SELF_DIR}/../../common/osinfo -a).exe"
+EXECUTABLE_FILE="${SELF_DIR}/${EXECUTABLE_NAME}"
+if [ ! -f ${EXECUTABLE_FILE} ]; then
+	curl https://cygwin.com/${EXECUTABLE_NAME} -o ${EXECUTABLE_FILE}
+	chmod +x ${EXECUTABLE_FILE}
+fi
+echo -e "${CFMT_INFO}Intalling ${@} using cygwin installer ${CFMT_NORMAL}"
+sleep 2
+${EXECUTABLE_FILE} -q -W -P $@
+echo -e "${CFMT_INFO}Intalled ${@} ${CFMT_NORMAL}"

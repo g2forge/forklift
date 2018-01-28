@@ -1,0 +1,79 @@
+#!/bin/bash
+set -eu -o pipefail
+
+function help () {
+	echo "$(basename ${0}): Jack for pallets from github"
+	echo
+	echo "Usage: $(basename ${0}) import|path|run github <org/repo> <refspec>"
+	echo -e "\tcommands:"
+	echo -e "\t\timport:            Import the pallet"
+	echo -e "\t\tpath:              Get the path of the specified pallet on the local machine"
+	echo -e "\t\trun <...> command: Run the specified command in the pallet"
+	echo
+}
+
+SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
+SELF=${SELF_DIR}/$(basename ${0})
+
+. ${SELF_DIR}/../../common/consoleformat
+. ${SELF_DIR}/../../common/util
+
+function install () {
+	COMMAND=${1}
+	PACKAGE=${2}
+	if ! which ${COMMAND} > /dev/null 2>&1; then
+		${SELF_DIR}/../../common/install ${PACKAGE}
+	elif [[ $(which ${COMMAND}) = *"/cygdrive/"* ]]; then
+		${SELF_DIR}/../../common/install ${PACKAGE}
+	fi
+}
+
+if [[ $# -lt 4 ]]; then
+	fail "Too few arguments, 4 (at least) are required!"
+fi
+
+COMMAND="${1}"
+WAREHOUSE="${2}"
+PALLET="${3}"
+VERSION="${4}"
+shift 4
+
+CACHE_DIR=~/.forklift/${WAREHOUSE}/${PALLET}/${VERSION}
+
+case ${COMMAND} in
+	-h|--help|help)
+	help
+	;;
+	import)
+	if [[ $# -gt 0 ]]; then
+		fail "Too many arguments!"
+	fi
+	if [ ! -d ${CACHE_DIR} ]; then
+		install git git
+		
+		PARENT_DIR=$(dirname ${CACHE_DIR})
+		mkdir -p ${PARENT_DIR}
+		cd ${PARENT_DIR}
+		git clone git@github.com:${PALLET}.git $(basename ${CACHE_DIR})
+		cd ${CACHE_DIR}
+		git checkout ${VERSION}
+	fi
+	;;
+	path)
+	echo $(cd ${CACHE_DIR} && pwd -P)
+	if [[ $# -gt 0 ]]; then
+		fail "Too many arguments!"
+	fi
+	;;
+	run)
+	COMMAND=$(cd ${CACHE_DIR} && pwd -P)/${1}
+	shift
+	${COMMAND} $@
+	;;
+	delete)
+	rm -rf ${CACHE_DIR}
+	;;
+	*)
+	fail "Unknown command: ${COMMAND}"
+	;;
+esac

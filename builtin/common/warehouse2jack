@@ -32,6 +32,9 @@ case ${WAREHOUSE} in
 	builtin)
 	echo "builtin"
 	;;
+	com.github)
+	echo "github"
+	;;
 	*)
 	fail "Unknown warehouse \"${WAREHOUSE}\""
 	;;
