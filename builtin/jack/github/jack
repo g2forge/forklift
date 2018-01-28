@@ -40,6 +40,20 @@ shift 4
 
 CACHE_DIR=~/.forklift/${WAREHOUSE}/${PALLET}/${VERSION}
 
+function import () {
+	if [ ! -d ${CACHE_DIR} ]; then
+		install git git
+		
+		echo -e "${CFMT_INFO}Importing ${WAREHOUSE} ${PALLET} ${VERSION}${CFMT_NORMAL}"
+		PARENT_DIR=$(dirname ${CACHE_DIR})
+		mkdir -p ${PARENT_DIR}
+		cd ${PARENT_DIR}
+		git clone git@github.com:${PALLET}.git $(basename ${CACHE_DIR})
+		cd ${CACHE_DIR}
+		git checkout ${VERSION}
+	fi
+}
+
 case ${COMMAND} in
 	-h|--help|help)
 	help
@@ -48,24 +62,17 @@ case ${COMMAND} in
 	if [[ $# -gt 0 ]]; then
 		fail "Too many arguments!"
 	fi
-	if [ ! -d ${CACHE_DIR} ]; then
-		install git git
-		
-		PARENT_DIR=$(dirname ${CACHE_DIR})
-		mkdir -p ${PARENT_DIR}
-		cd ${PARENT_DIR}
-		git clone git@github.com:${PALLET}.git $(basename ${CACHE_DIR})
-		cd ${CACHE_DIR}
-		git checkout ${VERSION}
-	fi
+	import
 	;;
 	path)
+	import
 	echo $(cd ${CACHE_DIR} && pwd -P)
 	if [[ $# -gt 0 ]]; then
 		fail "Too many arguments!"
 	fi
 	;;
 	run)
+	import
 	COMMAND=$(cd ${CACHE_DIR} && pwd -P)/${1}
 	shift
 	${COMMAND} $@

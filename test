@@ -1,0 +1,27 @@
+#!/bin/bash
+set -eu -o pipefail
+
+function help () {
+	echo "$(basename ${0}): Run unit tests for forklift"
+	echo
+	echo "Usage: $(basename ${0})"
+	echo
+}
+
+SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
+SELF=${SELF_DIR}/$(basename ${0})
+
+. ${SELF_DIR}/builtin/common/consoleformat
+. ${SELF_DIR}/builtin/common/util
+
+if [[ $# -gt 0 ]]; then
+	fail "No arguments allowed"
+fi
+
+BATS_WAREHOUSE="sstephenson/bats"
+BATS_VERSION="v0.4.0"
+
+for DIRECTORY in $(find ./ -type d -name "test"); do
+	echo -e "Executing tests in ${CFMT_CODE}${DIRECTORY}${CFMT_NORMAL}"
+	./forklift run com.github ${BATS_WAREHOUSE} ${BATS_VERSION} bin/bats ${DIRECTORY}
+done 
