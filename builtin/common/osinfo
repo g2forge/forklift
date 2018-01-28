@@ -1,0 +1,81 @@
+#!/bin/bash
+set -eu -o pipefail
+
+function help () {
+	echo "$(basename ${0}): Retrieve information about the operating system & distribution"
+	echo
+	echo "Usage: $(basename ${0}) [options]"
+	echo -e "\toptions:"
+	echo -e "\t\t-d|--distro:  Get the distro (RHEL, OSX, Ubuntu, Cygwin)"
+	echo -e "\t\t-v|--version: Get the version of the distribution"
+	echo -e "\t\t-a|--arch:    Get the architecture"
+	echo
+}
+
+SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
+SELF=${SELF_DIR}/$(basename ${0})
+
+. ${SELF_DIR}/util
+. ${SELF_DIR}/consoleformat
+
+while [[ $# -gt 0 ]]; do
+	KEY="${1}"
+	case ${KEY} in
+		-h|--help)
+		help
+		;;
+		-d|--distro)
+		if which lsb_release >/dev/null 2>&1; then
+			ID=$(lsb_release -id | head -n 1 | sed -e 's/.*:\s*//')
+			case ${ID} in
+				RedHatEnterpriseServer)
+				echo "RHEL"
+				;;
+				*)
+				echo "${ID}"
+				;;
+			esac
+		elif which sw_vers >/dev/null 2>&1; then
+			echo "OSX"
+		else
+			UNAMES="$(uname -s)"
+			case "${UNAMES}" in
+				CYGWIN*) echo "Cygwin";;
+				*)       echo "Unknown";;
+			esac
+		fi
+		;;
+		-v|--version)
+		DISTRO=$($0 -d)
+		case ${DISTRO} in
+			OSX)
+			sw_vers | grep "ProductVersion" | sed -e 's/.*:[	 ]*//'
+			;;
+			RHEL|Ubuntu)
+			lsb_release -r | sed -e 's/.*:\s*//'
+			;;
+			Cygwin)
+			uname -r | sed -e 's/\([^(]*\)(.*/\1/'
+			;;
+			*)
+			echo "Unknown"
+			;;
+		esac
+		;;
+		-a|--arch)
+		DISTRO=$($0 -d)
+		case ${DISTRO} in
+			Cygwin)
+			uname -m
+			;;
+			*)
+			uname -i
+			;;
+		esac
+		;;
+		*)
+		fail "Unknown argument: ${KEY}"
+		;;
+	esac
+	shift
+done

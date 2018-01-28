@@ -1,0 +1,13 @@
+CFMT_ESCAPE="\x1B"
+
+CFMT_NORMAL="${CFMT_ESCAPE}[0m"
+
+# Formats for certain kinds of text
+CFMT_SECRET="${CFMT_ESCAPE}[8m"
+CFMT_CODE="${CFMT_ESCAPE}[1m"
+
+# Format for messages
+CFMT_ERROR="${CFMT_ESCAPE}[31m"
+CFMT_WARNING="${CFMT_ESCAPE}[33m"
+CFMT_SUCCESS="${CFMT_ESCAPE}[32m"
+CFMT_INFO="${CFMT_ESCAPE}[39m"
