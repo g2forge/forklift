@@ -54,7 +54,7 @@ Currently supported warehouses (jacks):
 * "import": A request by a "customer" to "import" a "pallet" of files.
 * "customer": An "importer" of "pallets"
 * "warehouse": An "exporter" of "pallets"
-* "jack": A small program, a plugint to forklift, which is used to move "pallets" from a "warehouse" to a "customer"
+* "jack": A small program, a plugin to forklift, which is used to move "pallets" from a "warehouse" to a "customer"
 
 # Legal
 
