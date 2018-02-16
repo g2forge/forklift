@@ -7,4 +7,7 @@
 	<artifactId>forklift</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
+
+	<name>Forklift</name>
+	<description>A general purpose pallet (package) manager suitable for multi-language development.</description>
 </project>
