@@ -37,7 +37,7 @@ PALLET="${3}"
 VERSION="${4}"
 shift 4
 
-CACHE_DIR=${CACHE_ROOT}/${WAREHOUSE}/${PALLET}/${VERSION}
+CACHE_DIR=${CACHE_ROOT}/$(basename ${SELF_DIR})/${WAREHOUSE}/${PALLET}/${VERSION}
 
 function import () {
 	if [ ! -d ${CACHE_DIR} ]; then
