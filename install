@@ -1,0 +1,30 @@
+#!/bin/bash
+set -eu -o pipefail
+
+function help () {
+	echo "$(basename ${0}): Install forklift pallet manager"
+	echo
+	echo "Usage: $(basename ${0})"
+	echo
+}
+
+SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
+SELF=${SELF_DIR}/$(basename ${0})
+
+if [[ $# -eq 1 ]]; then
+	COMMAND="${1}"
+	case ${COMMAND} in
+		-h|--help|help)
+		help
+		exit 0
+		;;
+		*)
+		fail "Unrecognized command ${COMMAND}"
+		;;
+	esac
+elif [[ $# -gt 0 ]]; then
+	fail "No arguments allowed"
+fi
+
+TARBALL_URL=$(curl https://api.github.com/repos/g2forge/forklift/releases/latest 2> /dev/null | grep -F "tarball_url" | sed -e 's/[^"]*"tarball_url":[^"]*"\([^"]*\)",/\1/')
+curl -L ${TARBALL_URL} > forklift.tar.gz
