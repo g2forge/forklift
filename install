@@ -48,9 +48,21 @@ pushd ${TEMPDIR} 2>&1 >/dev/null
 	RELEASE_PATH=$(${RELEASE_DIR}/forklift path com.github ${RELEASE_ORG}/${RELEASE_REPO} ${RELEASE_TAG_NAME} | tail -n 1)
 	
 	echo "Installing forklift ${RELEASE_TAG_NAME}"
-	ln -svfT ${RELEASE_PATH}/forklift forklift
-	PREFIX=/usr/local
-	mkdir -p ${PREFIX}/bin
-	install -m 755 -p forklift ${PREFIX}/bin
+	. ${RELEASE_PATH}/builtin/common/source
+	BIN_DIR=${CACHE_ROOT}/bin
+	mkdir -p ${BIN_DIR}
+	if [ ! -f ${BIN_DIR}/forklift ]; then
+cat > ${BIN_DIR}/forklift <<EOF
+#!/bin/bash
+${RELEASE_PATH}/forklift \$@
+EOF
+		chmod 755 ${BIN_DIR}/forklift
+	fi
+	
+	if ! grep -qF "forklift" ~/.bash_profile; then
+		echo "Adding forklift ${RELEASE_TAG_NAME} to path by modifying ~/.bash_profile"
+		echo "export PATH=\"\${PATH}:${BIN_DIR}\"" >> ~/.bash_profile
+		echo "Please create a new bash shell to use forklift"
+	fi
 popd 2>&1 >/dev/null
 rm -rf ${TEMPDIR}
