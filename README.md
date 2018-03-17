@@ -63,3 +63,12 @@ Copyright Greg Gibeling 2018, licensed under the [Apache 2.0](LICENSE) license.
 # Standard
 
 Coming soon...
+
+# Contributing
+
+Issues and pull requests are welcome on [github.com/g2forge/forklift](https://github.com/g2forge/forklift).
+
+## Release
+
+1. Update the [`pom.xml`](pom.xml) version.
+2. Tag the release: `git tag -m <TAG> <TAG>` where `<TAG>` is of the form "v0.0.1"
