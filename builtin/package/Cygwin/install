@@ -11,8 +11,7 @@ function help () {
 SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
 SELF=${SELF_DIR}/$(basename ${0})
 
-. ${SELF_DIR}/../../common/consoleformat
-. ${SELF_DIR}/../../common/util
+. ${SELF_DIR}/../../common/source
 
 if [[ $# -lt 1 ]]; then
 	fail "Too few arguments, 1 (at least) is required!"

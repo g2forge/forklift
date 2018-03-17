@@ -15,8 +15,7 @@ function help () {
 SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
 SELF=${SELF_DIR}/$(basename ${0})
 
-. ${SELF_DIR}/../../common/consoleformat
-. ${SELF_DIR}/../../common/util
+. ${SELF_DIR}/../../common/source
 
 function install () {
 	COMMAND=${1}
@@ -38,7 +37,7 @@ PALLET="${3}"
 VERSION="${4}"
 shift 4
 
-CACHE_DIR=~/.forklift/${WAREHOUSE}/${PALLET}/${VERSION}
+CACHE_DIR=${CACHE_ROOT}/${WAREHOUSE}/${PALLET}/${VERSION}
 
 function import () {
 	if [ ! -d ${CACHE_DIR} ]; then

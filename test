@@ -11,8 +11,7 @@ function help () {
 SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
 SELF=${SELF_DIR}/$(basename ${0})
 
-. ${SELF_DIR}/builtin/common/consoleformat
-. ${SELF_DIR}/builtin/common/util
+. ${SELF_DIR}/builtin/common/source
 
 if [[ $# -eq 1 ]]; then
 	COMMAND="${1}"
