@@ -1,0 +1,56 @@
+#!/bin/bash
+set -eu -o pipefail
+
+function help () {
+	echo "$(basename ${0}): Install forklift pallet manager"
+	echo
+	echo "Usage: $(basename ${0})"
+	echo
+}
+
+SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
+SELF=${SELF_DIR}/$(basename ${0})
+
+if [[ $# -eq 1 ]]; then
+	COMMAND="${1}"
+	case ${COMMAND} in
+		-h|--help|help)
+		help
+		exit 0
+		;;
+		*)
+		fail "Unrecognized command ${COMMAND}"
+		;;
+	esac
+elif [[ $# -gt 0 ]]; then
+	fail "No arguments allowed"
+fi
+
+TEMPDIR=$(mktemp -d)
+pushd ${TEMPDIR} 2>&1 >/dev/null
+	RELEASE_ORG="g2forge"
+	RELEASE_REPO="forklift"
+	RELEASE_JSON="release.json"
+	RELEASE_TARGZ="release.tar.gz"
+	
+	echo "Getting information about current release"
+	curl https://api.github.com/repos/${RELEASE_ORG}/${RELEASE_REPO}/releases/latest 2> /dev/null > ${RELEASE_JSON}
+	RELEASE_TARBALL_URL=$(grep -F "tarball_url" ${RELEASE_JSON} | sed -e 's/[^"]*"tarball_url":[^"]*"\([^"]*\)",/\1/')
+	RELEASE_TAG_NAME=$(grep -F "tag_name" ${RELEASE_JSON} | sed -e 's/[^"]*"tag_name":[^"]*"\([^"]*\)",/\1/')
+	
+	echo "Downloading forklift ${RELEASE_TAG_NAME}"
+	curl -L ${RELEASE_TARBALL_URL} > ${RELEASE_TARGZ}
+	tar -xf ${RELEASE_TARGZ}
+	RELEASE_DIR=$(find ./ -maxdepth 1 -mindepth 1 -type d | grep -F "${RELEASE_ORG}-${RELEASE_REPO}-" | head -n 1)
+	
+	echo "Importing forklift ${RELEASE_TAG_NAME}"
+	${RELEASE_DIR}/forklift import com.github ${RELEASE_ORG}/${RELEASE_REPO} ${RELEASE_TAG_NAME}
+	RELEASE_PATH=$(${RELEASE_DIR}/forklift path com.github ${RELEASE_ORG}/${RELEASE_REPO} ${RELEASE_TAG_NAME} | tail -n 1)
+	
+	echo "Installing forklift ${RELEASE_TAG_NAME}"
+	ln -svfT ${RELEASE_PATH}/forklift forklift
+	PREFIX=/usr/local
+	mkdir -p ${PREFIX}/bin
+	install -m 755 -p forklift ${PREFIX}/bin
+popd 2>&1 >/dev/null
+rm -rf ${TEMPDIR}
