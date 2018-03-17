@@ -14,7 +14,18 @@ SELF=${SELF_DIR}/$(basename ${0})
 . ${SELF_DIR}/builtin/common/consoleformat
 . ${SELF_DIR}/builtin/common/util
 
-if [[ $# -gt 0 ]]; then
+if [[ $# -eq 1 ]]; then
+	COMMAND="${1}"
+	case ${COMMAND} in
+		-h|--help|help)
+		help
+		exit 0
+		;;
+		*)
+		fail "Unrecognized command ${COMMAND}"
+		;;
+	esac
+elif [[ $# -gt 0 ]]; then
 	fail "No arguments allowed"
 fi
 
