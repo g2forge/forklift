@@ -71,5 +71,7 @@ Issues and pull requests are welcome on [github.com/g2forge/forklift](https://gi
 
 ## Release
 
-1. Update the [`pom.xml`](pom.xml) version.
-2. Tag the release: `git tag -m <TAG> <TAG>` where `<TAG>` is of the form "v0.0.1"
+1. Tag the release: `git tag -m <TAG> <TAG>` where `<TAG>` is of the form "v0.0.1"
+2. [Create a release](https://github.com/g2forge/forklift/releases/new) on github using the new tag
+3. Update the [`pom.xml`](pom.xml) version.
+4. [Create the new milestone](https://github.com/g2forge/forklift/milestones/new)
