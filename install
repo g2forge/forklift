@@ -41,13 +41,17 @@ EOF
 			echo "export PATH=\"\${PATH}:${BIN_DIR}\"" >> ~/.bash_profile
 			echo "Please create a new bash shell to use forklift"
 		fi
+		echo "Success!"
+		exit 0
 		;;
 		*)
-		fail "Unrecognized command ${COMMAND}"
+		echo "Unrecognized command ${COMMAND}"
+		exit 1
 		;;
 	esac
 elif [[ $# -gt 0 ]]; then
-	fail "No arguments allowed"
+	echo "No arguments allowed"
+	exit 1
 fi
 
 TEMPDIR=$(mktemp -d)
