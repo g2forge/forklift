@@ -18,6 +18,30 @@ if [[ $# -eq 1 ]]; then
 		help
 		exit 0
 		;;
+		-d|--download|download)
+		# Execute the first phase, which is the default operation to make life easy by allowing the user to "curl installer | bash"
+		# Note that the installer is split in phases to ensure even an old installer can install a new version
+		;;
+		-i|--install|install)
+		# Second phase of the installer, responsible for actually installing *this* version of forklift
+		echo "Installing forklift"
+		. ${SELF_DIR}/builtin/common/source
+		BIN_DIR=${CACHE_ROOT}/bin
+		mkdir -p ${BIN_DIR}
+		if [ ! -f ${BIN_DIR}/forklift ]; then
+cat > ${BIN_DIR}/forklift <<EOF
+#!/bin/bash
+${SELF_DIR}/forklift \$@
+EOF
+			chmod 755 ${BIN_DIR}/forklift
+		fi
+		
+		if ! grep -qF "forklift" ~/.bash_profile; then
+			echo "Adding forklift to path by modifying ~/.bash_profile"
+			echo "export PATH=\"\${PATH}:${BIN_DIR}\"" >> ~/.bash_profile
+			echo "Please create a new bash shell to use forklift"
+		fi
+		;;
 		*)
 		fail "Unrecognized command ${COMMAND}"
 		;;
@@ -28,6 +52,7 @@ fi
 
 TEMPDIR=$(mktemp -d)
 pushd ${TEMPDIR} 2>&1 >/dev/null
+	# First phase of the installer, responsible for obtaining a local copy of forklift which can install intself
 	RELEASE_ORG="g2forge"
 	RELEASE_REPO="forklift"
 	RELEASE_JSON="release.json"
@@ -43,26 +68,8 @@ pushd ${TEMPDIR} 2>&1 >/dev/null
 	tar -xf ${RELEASE_TARGZ}
 	RELEASE_DIR=$(find ./ -maxdepth 1 -mindepth 1 -type d | grep -F "${RELEASE_ORG}-${RELEASE_REPO}-" | head -n 1)
 	
-	echo "Importing forklift ${RELEASE_TAG_NAME}"
-	${RELEASE_DIR}/forklift import com.github ${RELEASE_ORG}/${RELEASE_REPO} ${RELEASE_TAG_NAME}
-	RELEASE_PATH=$(${RELEASE_DIR}/forklift path com.github ${RELEASE_ORG}/${RELEASE_REPO} ${RELEASE_TAG_NAME} | tail -n 1)
-	
-	echo "Installing forklift ${RELEASE_TAG_NAME}"
-	. ${RELEASE_PATH}/builtin/common/source
-	BIN_DIR=${CACHE_ROOT}/bin
-	mkdir -p ${BIN_DIR}
-	if [ ! -f ${BIN_DIR}/forklift ]; then
-cat > ${BIN_DIR}/forklift <<EOF
-#!/bin/bash
-${RELEASE_PATH}/forklift \$@
-EOF
-		chmod 755 ${BIN_DIR}/forklift
-	fi
-	
-	if ! grep -qF "forklift" ~/.bash_profile; then
-		echo "Adding forklift ${RELEASE_TAG_NAME} to path by modifying ~/.bash_profile"
-		echo "export PATH=\"\${PATH}:${BIN_DIR}\"" >> ~/.bash_profile
-		echo "Please create a new bash shell to use forklift"
-	fi
+	echo "Running installer for ${RELEASE_TAG_NAME}"
+	# Note that this will download, import and then run the installer
+	${RELEASE_DIR}/forklift run com.github ${RELEASE_ORG}/${RELEASE_REPO} ${RELEASE_TAG_NAME} install --install
 popd 2>&1 >/dev/null
 rm -rf ${TEMPDIR}
