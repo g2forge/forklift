@@ -4,7 +4,7 @@ set -eu -o pipefail
 function help () {
 	echo "$(basename ${0}): Jack for pallets from github"
 	echo
-	echo "Usage: $(basename ${0}) import|path|run github <org/repo> <refspec>"
+	echo "Usage: $(basename ${0}) import|path|run com.github <org/repo> <refspec>"
 	echo -e "\tcommands:"
 	echo -e "\t\timport:            Import the pallet"
 	echo -e "\t\tpath:              Get the path of the specified pallet on the local machine"
@@ -39,6 +39,11 @@ shift 4
 
 CACHE_DIR=${CACHE_ROOT}/$(basename ${SELF_DIR})/${WAREHOUSE}/${PALLET}/${VERSION}
 
+function verify () {
+	if [ "${WAREHOUSE}" != "com.github" ]; then
+		fail "Unknown warehouse: ${COMMAND}"
+	fi
+}
 function import () {
 	if [ ! -d ${CACHE_DIR} ]; then
 		install git git
@@ -61,22 +66,26 @@ case ${COMMAND} in
 	if [[ $# -gt 0 ]]; then
 		fail "Too many arguments!"
 	fi
+	verify
 	import
 	;;
 	path)
-	import
-	echo $(cd ${CACHE_DIR} && pwd -P)
 	if [[ $# -gt 0 ]]; then
 		fail "Too many arguments!"
 	fi
+	verify
+	import
+	echo $(cd ${CACHE_DIR} && pwd -P)
 	;;
 	run)
+	verify
 	import
 	COMMAND=$(cd ${CACHE_DIR} && pwd -P)/${1}
 	shift
 	${COMMAND} $@
 	;;
 	delete)
+	verify
 	rm -rf ${CACHE_DIR}
 	;;
 	*)
