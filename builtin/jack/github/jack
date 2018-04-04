@@ -27,11 +27,22 @@ function install () {
 	fi
 }
 
+if [[ $# -lt 1 ]]; then
+	fail "Too few arguments, 1 (at least) is required!"
+fi
+
+COMMAND="${1}"
+
+case ${COMMAND} in
+	-h|--help|help)
+	help
+	exit 0
+esac
+
 if [[ $# -lt 4 ]]; then
 	fail "Too few arguments, 4 (at least) are required!"
 fi
 
-COMMAND="${1}"
 WAREHOUSE="${2}"
 PALLET="${3}"
 VERSION="${4}"
@@ -59,9 +70,6 @@ function import () {
 }
 
 case ${COMMAND} in
-	-h|--help|help)
-	help
-	;;
 	import)
 	if [[ $# -gt 0 ]]; then
 		fail "Too many arguments!"
