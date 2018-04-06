@@ -4,7 +4,7 @@ set -eu -o pipefail
 function help () {
 	echo "$(basename ${0}): Determine the default jack from a warehouse identifire"
 	echo
-	echo "Usage: $(basename ${0}) <warehouse>"
+	echo "Usage: $(basename ${0}) <warehouse> <pallet> <jack>"
 	echo
 }
 
@@ -13,21 +13,22 @@ SELF=${SELF_DIR}/$(basename ${0})
 
 . ${SELF_DIR}/source
 
-if [[ $# -lt 1 ]]; then
-	fail "Too few arguments, 1 is required!"
-fi
-
+args_min 1
 WAREHOUSE="${1}"
-shift 1
-
-if [[ $# -gt 0 ]]; then
-	fail "Too many arguments!"
-fi
 
 case ${WAREHOUSE} in
 	-h|--help)
 	help
+	exit 0
 	;;
+esac
+
+args_eq 3
+PALLET="${2}"
+VERSION="${3}"
+shift 3
+
+case ${WAREHOUSE} in
 	builtin)
 	echo "builtin"
 	;;

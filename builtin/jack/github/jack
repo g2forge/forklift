@@ -28,17 +28,6 @@ function install () {
 	fi
 }
 
-function args_min () {
-	if [[ ${#BASH_ARGV[@]} -lt ${1} ]]; then
-		fail "Too few arguments, ${1} (at least) required!"
-	fi
-}
-function args_max () {
-	if [[ ${#BASH_ARGV[@]} -gt ${1} ]]; then
-		fail "Too many arguments, ${1} (at most) allowed!"
-	fi
-}
-
 args_min 1
 COMMAND="${1}"
 

@@ -22,6 +22,7 @@ if [[ $# -lt 1 ]]; then
 	fail "Too few arguments, 1 (at least) is required!"
 fi
 
+args_min 1
 COMMAND="${1}"
 
 case ${COMMAND} in
@@ -30,10 +31,7 @@ case ${COMMAND} in
 	exit 0
 esac
 
-if [[ $# -lt 4 ]]; then
-	fail "Too few arguments, 4 (at least) are required!"
-fi
-
+args_min 4
 WAREHOUSE="${2}"
 PALLET="${3}"
 VERSION="${4}"
@@ -56,10 +54,10 @@ case ${COMMAND} in
 	fi
 	;;
 	path)
-	echo $(cd ${SELF_DIR}/../../${PALLET} && pwd -P)
 	if [[ $# -gt 0 ]]; then
 		fail "Too many arguments!"
 	fi
+	echo $(cd ${SELF_DIR}/../../${PALLET} && pwd -P)
 	;;
 	run)
 	COMMAND=$(cd ${SELF_DIR}/../../${PALLET} && pwd -P)/${1}

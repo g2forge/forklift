@@ -36,5 +36,5 @@ case ${COMMAND} in
 	;;
 esac
 
-JACK="${SELF_DIR}/builtin/jack/$(${SELF_DIR}/builtin/common/warehouse2jack ${WAREHOUSE})/jack"
+JACK="${SELF_DIR}/builtin/jack/$(${SELF_DIR}/builtin/common/pallet2jack ${WAREHOUSE} ${PALLET} ${VERSION})/jack"
 ${JACK} ${COMMAND} ${WAREHOUSE} ${PALLET} ${VERSION} $@
