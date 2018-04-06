@@ -56,20 +56,28 @@ shift 4
 
 CACHE_DIR=${FLCACHE_ROOT}/$(basename ${SELF_DIR})/${WAREHOUSE}/${PALLET}/${VERSION}
 
+function warehouse2host () {
+	echo "${WAREHOUSE}" | sed -e 's/\./\n/g' | tac | tr -s '\n' '.' | sed -e 's/.$/\n/'
+}
 function verify () {
 	if [ "${WAREHOUSE}" != "com.github" ]; then
-		fail "Unknown warehouse: ${WAREHOUSE}"
+		GHHOST=$(warehouse2host)
+		echo $GHHOST
+		if ! (curl -is "https://${GHHOST}/api/v3" 2> /dev/null | grep -qe '^X-GitHub-'); then
+			fail "Unknown warehouse: ${WAREHOUSE}"
+		fi
 	fi
 }
 function import () {
 	if [ ! -d ${CACHE_DIR} ]; then
+		verify
 		install git git
 		
 		echo -e "${CFMT_INFO}Importing ${WAREHOUSE} ${PALLET} ${VERSION}${CFMT_NORMAL}"
 		PARENT_DIR=$(dirname ${CACHE_DIR})
 		mkdir -p ${PARENT_DIR}
 		pushd ${PARENT_DIR} > /dev/null 2>&1
-		git clone -- git@github.com:${PALLET}.git $(basename ${CACHE_DIR})
+		git clone -- git@$(warehouse2host):${PALLET}.git $(basename ${CACHE_DIR})
 		cd ${CACHE_DIR}
 		git checkout -b ${VERSION} ${VERSION}
 		if [ "Cygwin" == $(${SELF_DIR}/../../common/osinfo -d) ]; then
@@ -87,17 +95,14 @@ case ${COMMAND} in
 	;;
 	import)
 	args_max 4
-	verify
 	import
 	;;
 	path)
 	args_max 4
-	verify
 	import
 	echo $(cd ${CACHE_DIR} && pwd -P)
 	;;
 	run)
-	verify
 	import
 	COMMAND=$(cd ${CACHE_DIR} && pwd -P)/${1}
 	shift
