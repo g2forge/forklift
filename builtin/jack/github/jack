@@ -51,8 +51,11 @@ function warehouse2host () {
 function verify () {
 	if [ "${WAREHOUSE}" != "com.github" ]; then
 		GHHOST=$(warehouse2host)
-		if ! (curl -is "https://${GHHOST}/api/v3" 2> /dev/null | grep -qe '^X-GitHub-'); then
-			fail "Unknown warehouse: ${WAREHOUSE}"
+		echo -e "${CFMT_INFO}Checking if ${GHHOST} is a GitHub Enterprise server${CFMT_NORMAL}" >&2
+		if ! (curl --connect-timeout 1 -is "https://${GHHOST}/api/v3" 2> /dev/null | grep -qe '^X-GitHub-'); then
+			if ! (curl --connect-timeout 1 -is "https://${GHHOST}/api/v3" 2> /dev/null | grep -qe '^X-GitHub-'); then
+				fail "Unknown warehouse: ${WAREHOUSE}"
+			fi
 		fi
 	fi
 }
@@ -61,7 +64,7 @@ function import () {
 		verify
 		install git git
 		
-		echo -e "${CFMT_INFO}Importing ${WAREHOUSE} ${PALLET} ${VERSION}${CFMT_NORMAL}"
+		echo -e "${CFMT_INFO}Importing ${WAREHOUSE} ${PALLET} ${VERSION}${CFMT_NORMAL}" >&2
 		PARENT_DIR=$(dirname ${CACHE_DIR})
 		mkdir -p ${PARENT_DIR}
 		pushd ${PARENT_DIR} > /dev/null 2>&1
@@ -72,6 +75,7 @@ function import () {
 			git checkout -b ${VERSION} ${VERSION}
 		fi
 		if [ "Cygwin" == $(${SELF_DIR}/../../common/osinfo -d) ]; then
+			echo -e "${CFMT_INFO}Fixing cygwin symlinks${CFMT_NORMAL}" >&2
 			git config core.symlinks true
 			git checkout -f
 		fi

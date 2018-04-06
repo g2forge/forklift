@@ -37,16 +37,17 @@ case ${WAREHOUSE} in
 	;;
 	*)
 	pushd ${SELF_DIR} > /dev/null 2>&1
+		echo -e "${CFMT_INFO}Searching for jacks for pallet ${WAREHOUSE} ${PALLET} ${VERSION}${CFMT_NORMAL}" >&2
 		JACKFILE=$(mktemp)
 		set +e
 		${SELF_DIR}/cache ${SELF_DIR}/findjacks ${WAREHOUSE} ${PALLET} ${VERSION} > ${JACKFILE}
 		set -e
 		if [ ! -f ${JACKFILE} ]; then
-			fail "Could not find suitable jack for pallet \"${WAREHOUSE}\" \"${PALLET}\" \"${VERSION}\" (couldn't even search for jacks)"
+			fail "Could not find suitable jack for pallet (couldn't even search for jacks)"
 		fi
 		JACKCOUNT=$(wc -l ${JACKFILE} | cut -f 1 -d ' ')
 		if [[ ${JACKCOUNT} -ne 1 ]]; then
-			fail "Could not find suitable jack for pallet \"${WAREHOUSE}\" \"${PALLET}\" \"${VERSION}\" (found ${JACKCOUNT} jacks)"
+			fail "Could not find suitable jack for pallet (found ${JACKCOUNT} jacks)"
 		fi
 		cat ${JACKFILE}
 		rm ${JACKFILE}
