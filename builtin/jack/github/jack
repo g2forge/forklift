@@ -4,8 +4,9 @@ set -eu -o pipefail
 function help () {
 	echo "$(basename ${0}): Jack for pallets from github"
 	echo
-	echo "Usage: $(basename ${0}) import|path|run com.github <org/repo> <refspec>"
+	echo "Usage: $(basename ${0}) test|import|path|run com.github <org/repo> <refspec>"
 	echo -e "\tcommands:"
+	echo -e "\t\ttest:              Test whether this jack can move the specified pallet"
 	echo -e "\t\timport:            Import the pallet"
 	echo -e "\t\tpath:              Get the path of the specified pallet on the local machine"
 	echo -e "\t\trun <...> command: Run the specified command in the pallet"
@@ -57,7 +58,7 @@ CACHE_DIR=${FLCACHE_ROOT}/$(basename ${SELF_DIR})/${WAREHOUSE}/${PALLET}/${VERSI
 
 function verify () {
 	if [ "${WAREHOUSE}" != "com.github" ]; then
-		fail "Unknown warehouse: ${COMMAND}"
+		fail "Unknown warehouse: ${WAREHOUSE}"
 	fi
 }
 function import () {
@@ -80,13 +81,17 @@ function import () {
 }
 
 case ${COMMAND} in
+	test)
+	args_max 4
+	verify
+	;;
 	import)
-	args_max 0
+	args_max 4
 	verify
 	import
 	;;
 	path)
-	args_max 0
+	args_max 4
 	verify
 	import
 	echo $(cd ${CACHE_DIR} && pwd -P)
@@ -99,7 +104,7 @@ case ${COMMAND} in
 	${COMMAND} $@
 	;;
 	delete)
-	args_max 0
+	args_max 4
 	verify
 	rm -rf ${CACHE_DIR}
 	;;
