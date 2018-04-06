@@ -27,10 +27,18 @@ function install () {
 	fi
 }
 
-if [[ $# -lt 1 ]]; then
-	fail "Too few arguments, 1 (at least) is required!"
-fi
+function args_min () {
+	if [[ ${#BASH_ARGV[@]} -lt ${1} ]]; then
+		fail "Too few arguments, ${1} (at least) required!"
+	fi
+}
+function args_max () {
+	if [[ ${#BASH_ARGV[@]} -gt ${1} ]]; then
+		fail "Too many arguments, ${1} (at most) allowed!"
+	fi
+}
 
+args_min 1
 COMMAND="${1}"
 
 case ${COMMAND} in
@@ -39,10 +47,7 @@ case ${COMMAND} in
 	exit 0
 esac
 
-if [[ $# -lt 4 ]]; then
-	fail "Too few arguments, 4 (at least) are required!"
-fi
-
+args_min 4
 WAREHOUSE="${2}"
 PALLET="${3}"
 VERSION="${4}"
@@ -62,25 +67,26 @@ function import () {
 		echo -e "${CFMT_INFO}Importing ${WAREHOUSE} ${PALLET} ${VERSION}${CFMT_NORMAL}"
 		PARENT_DIR=$(dirname ${CACHE_DIR})
 		mkdir -p ${PARENT_DIR}
-		cd ${PARENT_DIR}
-		git clone git@github.com:${PALLET}.git $(basename ${CACHE_DIR})
+		pushd ${PARENT_DIR} > /dev/null 2>&1
+		git clone -- git@github.com:${PALLET}.git $(basename ${CACHE_DIR})
 		cd ${CACHE_DIR}
-		git checkout ${VERSION}
+		git checkout -b ${VERSION} ${VERSION}
+		if [ "Cygwin" == $(${SELF_DIR}/../../common/osinfo -d) ]; then
+			git config core.symlinks true
+			git checkout -f
+		fi
+		popd > /dev/null 2>&1
 	fi
 }
 
 case ${COMMAND} in
 	import)
-	if [[ $# -gt 0 ]]; then
-		fail "Too many arguments!"
-	fi
+	args_max 0
 	verify
 	import
 	;;
 	path)
-	if [[ $# -gt 0 ]]; then
-		fail "Too many arguments!"
-	fi
+	args_max 0
 	verify
 	import
 	echo $(cd ${CACHE_DIR} && pwd -P)
@@ -93,6 +99,7 @@ case ${COMMAND} in
 	${COMMAND} $@
 	;;
 	delete)
+	args_max 0
 	verify
 	rm -rf ${CACHE_DIR}
 	;;
@@ -100,3 +107,4 @@ case ${COMMAND} in
 	fail "Unknown command: ${COMMAND}"
 	;;
 esac
+
