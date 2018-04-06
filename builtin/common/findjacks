@@ -1,0 +1,35 @@
+#!/bin/bash
+set -eu -o pipefail
+
+function help () {
+	echo "$(basename ${0}): Find all the jacks which can claim to be able to load a specified pallet"
+	echo
+	echo "Usage: $(basename ${0}) <warehouse> <pallet> <jack>"
+	echo
+}
+
+SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
+SELF=${SELF_DIR}/$(basename ${0})
+
+. ${SELF_DIR}/source
+
+args_min 1
+WAREHOUSE="${1}"
+
+case ${WAREHOUSE} in
+	-h|--help)
+	help
+	exit 0
+	;;
+esac
+
+args_eq 3
+PALLET="${2}"
+VERSION="${3}"
+shift 3
+
+for JACK in $(find ${SELF_DIR}/../jack/ -maxdepth 2 -mindepth 2 -name "jack" -type f); do
+	if ${JACK} test ${WAREHOUSE} ${PALLET} ${VERSION} > /dev/null 2>&1; then
+		basename $(dirname ${JACK})
+	fi
+done

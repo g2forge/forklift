@@ -2,7 +2,7 @@
 set -eu -o pipefail
 
 function help () {
-	echo "$(basename ${0}): Determine the default jack from a warehouse identifire"
+	echo "$(basename ${0}): Determine the jack from a pallet identifier"
 	echo
 	echo "Usage: $(basename ${0}) <warehouse> <pallet> <jack>"
 	echo
@@ -36,6 +36,15 @@ case ${WAREHOUSE} in
 	echo "github"
 	;;
 	*)
-	fail "Unknown warehouse \"${WAREHOUSE}\""
+	pushd ${SELF_DIR} > /dev/null 2>&1
+		JACKFILE=$(mktemp)
+		${SELF_DIR}/cache ${SELF_DIR}/findjacks ${WAREHOUSE} ${PALLET} ${VERSION} > ${JACKFILE}
+		JACKCOUNT=$(wc -l ${JACKFILE} | cut -f 1 -d ' ')
+		if [[ ${JACKCOUNT} -ne 1 ]]; then
+			fail "Could not find suitable jack for pallet \"${WAREHOUSE}\" \"${PALLET}\" \"${VERSION}\" (found ${JACKCOUNT} jacks)"
+		fi
+		cat ${JACKFILE}
+		rm ${JACKFILE}
+	popd > /dev/null 2>&1
 	;;
 esac

@@ -22,7 +22,7 @@ set -u
 for ARG in "$@"; do
 	CMD=( "${CMD[@]}" "$ARG" )
 done
-SHA1=$(echo -n "${CMD[@]}" | sha1sum | awk '{print $1}')
+SHA1=$(echo -n "$(pwd -P) ${CMD[@]}" | sha1sum | awk '{print $1}')
 
 CMD_DIR=${CACHE_ROOT}/${SHA1}
 CMD_STDOUT="${CMD_DIR}/stdout"
