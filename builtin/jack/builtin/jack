@@ -18,10 +18,6 @@ SELF=${SELF_DIR}/$(basename ${0})
 
 . ${SELF_DIR}/../../common/source
 
-if [[ $# -lt 1 ]]; then
-	fail "Too few arguments, 1 (at least) is required!"
-fi
-
 args_min 1
 COMMAND="${1}"
 
