@@ -10,6 +10,8 @@ One common use case is to abstract out common code from BASH scripts.
 
 * **Install forklift**: `curl -L https://raw.githubusercontent.com/g2forge/forklift/master/install | bash`
 * Run a command from a pallet: `forklift run <warehouse> <pallet> <version> <command-with-arguments>`
+* Update forklift: `forklift update`
+* Uninstall forklift: `forklift uninstall` (will also clear out all cached and temporary data)
 
 ## Example 1
 
