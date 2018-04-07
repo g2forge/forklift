@@ -13,6 +13,7 @@ function help () {
 SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
 SELF=${SELF_DIR}/$(basename ${0})
 
+DEVINSTALL=0
 if [[ $# -eq 1 ]]; then
 	COMMAND="${1}"
 	case ${COMMAND} in
@@ -24,6 +25,11 @@ if [[ $# -eq 1 ]]; then
 		# Execute the first phase, which is the default operation to make life easy by allowing the user to "curl installer | bash"
 		# Note that the installer is split in phases to ensure even an old installer can install a new version
 		;;
+		--dev|dev|--development|development)
+		if [ -f ${SELF_DIR}/forklift ]; then
+			DEVINSTALL=1
+		fi
+		;;
 		*)
 		echo "Unrecognized command ${COMMAND}"
 		exit 1
@@ -34,8 +40,8 @@ elif [[ $# -gt 0 ]]; then
 	exit 1
 fi
 
-if [ -f ${SELF_DIR}/forklift ]; then
-	echo "Detected development version of forklift, installing from here"
+if [ ${DEVINSTALL} -ne 0 ]; then
+	echo "Detected current version of forklift, installing from here"
 	${SELF_DIR}/forklift run builtin install current install
 else
 	TEMPDIR=$(mktemp -d)
