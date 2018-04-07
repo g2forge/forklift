@@ -16,7 +16,7 @@ SELF=${SELF_DIR}/$(basename ${0})
 
 BIN_DIR=${FLCACHE_ROOT}/bin
 
-echo "Installing up forklift"
+echo "Installing forklift"
 mkdir -p ${BIN_DIR}
 INSTALL_DIR=$(cd ${SELF_DIR}/../.. && pwd -P)
 cat > ${BIN_DIR}/forklift <<EOF

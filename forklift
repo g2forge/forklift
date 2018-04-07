@@ -34,6 +34,7 @@ case ${COMMAND} in
 		fail "Could not determine version, this may be a development directory!"
 	fi
 	echo ${VERSION}
+	exit 0
 	;;
 	uninstall)
 	${SELF_DIR}/builtin/install/uninstall
