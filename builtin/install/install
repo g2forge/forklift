@@ -1,0 +1,34 @@
+#!/bin/bash
+# Second phase of the installer, responsible for actually installing *this* version of forklift
+set -eu -o pipefail
+
+function help () {
+	echo "$(basename ${0}): Install this instance of forklift"
+	echo
+	echo "Usage: $(basename ${0})"
+	echo
+}
+
+SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
+SELF=${SELF_DIR}/$(basename ${0})
+
+. ${SELF_DIR}/../common/source
+
+BIN_DIR=${FLCACHE_ROOT}/bin
+
+echo "Installing up forklift"
+mkdir -p ${BIN_DIR}
+INSTALL_DIR=$(cd ${SELF_DIR}/../.. && pwd -P)
+cat > ${BIN_DIR}/forklift <<EOF
+#!/bin/bash
+${INSTALL_DIR}/forklift \$@
+EOF
+chmod 755 ${BIN_DIR}/forklift
+
+if ! grep -qF "forklift" ~/.bash_profile; then
+	echo "Adding forklift to path by modifying ~/.bash_profile"
+	echo "export PATH=\"\${PATH}:${BIN_DIR}\"" >> ~/.bash_profile
+	echo -e "${CFMT_SUCCESS}Succes${CFMT_NORMAL} (please create a new bash shell to use forklift)!"
+else
+	echo -e "${CFMT_SUCCESS}Succes${CFMT_NORMAL}!"
+fi

@@ -6,6 +6,9 @@ function help () {
 	echo
 	echo "Usage: $(basename ${0}) import|path|run <warehouse> <pallet> <version>"
 	echo -e "\tcommands:"
+	echo -e "\t\tversion:           Print the version number for this install of forklift"
+	echo -e "\t\tupdate:            Ensure that the latest version of forklift is installed"
+	echo -e "\t\tuninstall:         Uninstall and cleanup this forklift installation"
 	echo -e "\t\timport:            Import the specific pallet to a local warehouse for consumption"
 	echo -e "\t\tpath:              Get the path of the specified pallet in the local warehouse"
 	echo -e "\t\trun <...> command: Run the specified command in the pallet"
@@ -17,24 +20,38 @@ SELF=${SELF_DIR}/$(basename ${0})
 
 . ${SELF_DIR}/builtin/common/source
 
-if [[ $# -lt 4 ]]; then
-	fail "Too few arguments, 4 (at least) are required!"
-fi
-
+args_min 1
 COMMAND="${1}"
-WAREHOUSE="${2}"
-PALLET="${3}"
-VERSION="${4}"
-shift 4
 
 case ${COMMAND} in
 	-h|--help|help)
 	help
 	exit 0
 	;;
+	-v|--version|version)
+	VERSION=$(basename ${SELF_DIR})
+	if [ "${VERSION}" == "forklift" ]; then
+		fail "Could not determine version, this may be a development directory!"
+	fi
+	echo ${VERSION}
+	;;
+	uninstall)
+	${SELF_DIR}/builtin/install/uninstall
+	exit 0
+	;;
+	update)
+	${SELF_DIR}/install
+	exit 0
+	;;
 	*)
 	;;
 esac
+
+args_min 4
+WAREHOUSE="${2}"
+PALLET="${3}"
+VERSION="${4}"
+shift 4
 
 JACK="${SELF_DIR}/builtin/jack/$(${SELF_DIR}/builtin/common/pallet2jack ${WAREHOUSE} ${PALLET} ${VERSION})/jack"
 ${JACK} ${COMMAND} ${WAREHOUSE} ${PALLET} ${VERSION} $@

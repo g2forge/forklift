@@ -1,0 +1,24 @@
+#!/bin/bash
+set -eu -o pipefail
+
+function help () {
+	echo "$(basename ${0}): Uninstall this instance of forklift"
+	echo
+	echo "Usage: $(basename ${0})"
+	echo
+}
+
+SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
+SELF=${SELF_DIR}/$(basename ${0})
+
+. ${SELF_DIR}/../common/source
+
+echo "Deleting forklift cache"
+rm -rf ${FLCACHE_ROOT}
+
+echo "Removing forklift from path"
+TEMP_PROFILE=$(mktemp)
+grep -vF "forklift" ~/.bash_profile || true > ${TEMP_PROFILE}
+mv ${TEMP_PROFILE} ~/.bash_profile
+
+echo -e "${CFMT_SUCCESS}Succes${CFMT_NORMAL}!"
