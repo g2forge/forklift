@@ -5,6 +5,8 @@ function help () {
 	echo "$(basename ${0}): Install forklift pallet manager"
 	echo
 	echo "Usage: $(basename ${0})"
+	echo -e "\tcommands:"
+	echo -e "\t\tdownload: Download and install forklift"
 	echo
 }
 
@@ -22,28 +24,6 @@ if [[ $# -eq 1 ]]; then
 		# Execute the first phase, which is the default operation to make life easy by allowing the user to "curl installer | bash"
 		# Note that the installer is split in phases to ensure even an old installer can install a new version
 		;;
-		-i|--install|install)
-		# Second phase of the installer, responsible for actually installing *this* version of forklift
-		echo "Installing forklift"
-		. ${SELF_DIR}/builtin/common/source
-		BIN_DIR=${FLCACHE_ROOT}/bin
-		mkdir -p ${BIN_DIR}
-		if [ ! -f ${BIN_DIR}/forklift ]; then
-cat > ${BIN_DIR}/forklift <<EOF
-#!/bin/bash
-${SELF_DIR}/forklift \$@
-EOF
-			chmod 755 ${BIN_DIR}/forklift
-		fi
-		
-		if ! grep -qF "forklift" ~/.bash_profile; then
-			echo "Adding forklift to path by modifying ~/.bash_profile"
-			echo "export PATH=\"\${PATH}:${BIN_DIR}\"" >> ~/.bash_profile
-			echo "Please create a new bash shell to use forklift"
-		fi
-		echo "Success!"
-		exit 0
-		;;
 		*)
 		echo "Unrecognized command ${COMMAND}"
 		exit 1
@@ -54,26 +34,46 @@ elif [[ $# -gt 0 ]]; then
 	exit 1
 fi
 
-TEMPDIR=$(mktemp -d)
-pushd ${TEMPDIR} 2>&1 >/dev/null
-	# First phase of the installer, responsible for obtaining a local copy of forklift which can install intself
-	RELEASE_ORG="g2forge"
-	RELEASE_REPO="forklift"
-	RELEASE_JSON="release.json"
-	RELEASE_TARGZ="release.tar.gz"
-	
-	echo "Getting information about current release"
-	curl https://api.github.com/repos/${RELEASE_ORG}/${RELEASE_REPO}/releases/latest 2> /dev/null > ${RELEASE_JSON}
-	RELEASE_TARBALL_URL=$(grep -F "tarball_url" ${RELEASE_JSON} | sed -e 's/[^"]*"tarball_url":[^"]*"\([^"]*\)",/\1/')
-	RELEASE_TAG_NAME=$(grep -F "tag_name" ${RELEASE_JSON} | sed -e 's/[^"]*"tag_name":[^"]*"\([^"]*\)",/\1/')
-	
-	echo "Downloading forklift ${RELEASE_TAG_NAME}"
-	curl -L ${RELEASE_TARBALL_URL} > ${RELEASE_TARGZ}
-	tar -xf ${RELEASE_TARGZ}
-	RELEASE_DIR=$(find ./ -maxdepth 1 -mindepth 1 -type d | grep -F "${RELEASE_ORG}-${RELEASE_REPO}-" | head -n 1)
-	
-	echo "Running installer for ${RELEASE_TAG_NAME}"
-	# Note that this will download, import and then run the installer
-	${RELEASE_DIR}/forklift run com.github ${RELEASE_ORG}/${RELEASE_REPO} ${RELEASE_TAG_NAME} install --install
-popd 2>&1 >/dev/null
-rm -rf ${TEMPDIR}
+if [ -f ${SELF_DIR}/forklift ]; then
+	echo "Detected development version of forklift, installing from here"
+	${SELF_DIR}/forklift run builtin install current install
+else
+	TEMPDIR=$(mktemp -d)
+	pushd ${TEMPDIR} 2>&1 >/dev/null
+		# First phase of the installer, responsible for obtaining a local copy of forklift which can install itself
+		RELEASE_ORG="g2forge"
+		RELEASE_REPO="forklift"
+		RELEASE_JSON="release.json"
+		RELEASE_TARGZ="release.tar.gz"
+		
+		echo "Getting information about latest release"
+		curl https://api.github.com/repos/${RELEASE_ORG}/${RELEASE_REPO}/releases/latest 2> /dev/null > ${RELEASE_JSON}
+		RELEASE_TARBALL_URL=$(grep -F "tarball_url" ${RELEASE_JSON} | sed -e 's/[^"]*"tarball_url":[^"]*"\([^"]*\)",/\1/')
+		RELEASE_TAG_NAME=$(grep -F "tag_name" ${RELEASE_JSON} | sed -e 's/[^"]*"tag_name":[^"]*"\([^"]*\)",/\1/')
+		
+		if which forklift > /dev/null 2>&1; then
+			INSTALLED_VERSION=$(forklift version)
+			echo "Found previous install of ${INSTALLED_VERSION}"
+			if [ "${INSTALLED_VERSION}" == "${RELEASE_TAG_NAME}" ]; then
+				echo "Already up to date, skipping download and install"
+				DOINSTALL=0
+			else
+				DOINSTALL=1
+			fi
+		else
+			DOINSTALL=1
+		fi
+		
+		if [ ${DOINSTALL} -ne 0 ]; then
+			echo "Downloading forklift ${RELEASE_TAG_NAME}"
+			curl -L ${RELEASE_TARBALL_URL} > ${RELEASE_TARGZ}
+			tar -xf ${RELEASE_TARGZ}
+			RELEASE_DIR=$(find ./ -maxdepth 1 -mindepth 1 -type d | grep -F "${RELEASE_ORG}-${RELEASE_REPO}-" | head -n 1)
+			
+			echo "Running setup for ${RELEASE_TAG_NAME}"
+			# Note that this will download, import and then run the setup script
+			${RELEASE_DIR}/forklift run builtin install current install
+		fi
+	popd 2>&1 >/dev/null
+	rm -rf ${TEMPDIR}
+fi
