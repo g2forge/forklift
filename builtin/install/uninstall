@@ -13,12 +13,20 @@ SELF=${SELF_DIR}/$(basename ${0})
 
 . ${SELF_DIR}/../common/source
 
+DELETER=$(mktemp)
+cat > ${DELETER} <<EOF
+#!/bin/bash
+set -eu -o pipefail
+
 echo "Deleting forklift cache"
 rm -rf ${FLCACHE_ROOT}
 
 echo "Removing forklift from path"
-TEMP_PROFILE=$(mktemp)
-grep -vF "forklift" ~/.bash_profile || true > ${TEMP_PROFILE}
-mv ${TEMP_PROFILE} ~/.bash_profile
+TEMP_PROFILE=\$(mktemp)
+grep -vF "forklift" ~/.bash_profile || true > \${TEMP_PROFILE}
+mv \${TEMP_PROFILE} ~/.bash_profile
 
 echo -e "${CFMT_SUCCESS}Succes${CFMT_NORMAL}!"
+EOF
+chmod +x ${DELETER}
+${DELETER}
