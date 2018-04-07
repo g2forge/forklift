@@ -53,7 +53,7 @@ function verify () {
 		GHHOST=$(warehouse2host)
 		echo -e "${CFMT_INFO}Checking if ${GHHOST} is a GitHub Enterprise server${CFMT_NORMAL}" >&2
 		if ! (curl --connect-timeout 1 -is "https://${GHHOST}/api/v3" 2> /dev/null | grep -qe '^X-GitHub-'); then
-			if ! (curl --connect-timeout 1 -is "https://${GHHOST}/api/v3" 2> /dev/null | grep -qe '^X-GitHub-'); then
+			if ! (curl --connect-timeout 1 -is "http://${GHHOST}/api/v3" 2> /dev/null | grep -qe '^X-GitHub-'); then
 				fail "Unknown warehouse: ${WAREHOUSE}"
 			fi
 		fi
