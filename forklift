@@ -7,6 +7,7 @@ function help () {
 	echo "Usage: $(basename ${0}) import|path|run <warehouse> <pallet> <version>"
 	echo -e "\tcommands:"
 	echo -e "\t\tversion:           Print the version number for this install of forklift"
+	echo -e "\t\tuninstall:         Uninstall and cleanup this forklift installation"
 	echo -e "\t\timport:            Import the specific pallet to a local warehouse for consumption"
 	echo -e "\t\tpath:              Get the path of the specified pallet in the local warehouse"
 	echo -e "\t\trun <...> command: Run the specified command in the pallet"
@@ -32,6 +33,10 @@ case ${COMMAND} in
 		fail "Could not determine version, this may be a development directory!"
 	fi
 	echo ${VERSION}
+	;;
+	uninstall)
+	${SELF_DIR}/builtin/install/uninstall
+	exit 0
 	;;
 	*)
 	;;
