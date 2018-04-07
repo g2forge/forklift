@@ -71,7 +71,7 @@ else
 			
 			echo "Running install for ${RELEASE_TAG_NAME}"
 			# Note that this will download, import and then run the setup script
-			${RELEASE_DIR}/forklift run builtin install current install
+			${RELEASE_DIR}/forklift run com.github ${RELEASE_ORG}/${RELEASE_REPO} ${RELEASE_TAG_NAME} builtin/install/install
 		fi
 	popd 2>&1 >/dev/null
 	rm -rf ${TEMPDIR}
