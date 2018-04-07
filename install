@@ -56,21 +56,20 @@ else
 			echo "Found previous install of ${INSTALLED_VERSION}"
 			if [ "${INSTALLED_VERSION}" == "${RELEASE_TAG_NAME}" ]; then
 				echo "Already up to date, skipping download and install"
-				DOINSTALL=0
 			else
-				DOINSTALL=1
+				echo "Installing forklift ${RELEASE_TAG_NAME}"
+				forklift run com.github ${RELEASE_ORG}/${RELEASE_REPO} ${RELEASE_TAG_NAME} builtin/install/install
+				
+				echo "Removing forklift ${INSTALLED_VERSION}"
+				forklift delete com.github ${RELEASE_ORG}/${RELEASE_REPO} ${INSTALLED_VERSION}
 			fi
 		else
-			DOINSTALL=1
-		fi
-		
-		if [ ${DOINSTALL} -ne 0 ]; then
 			echo "Downloading forklift ${RELEASE_TAG_NAME}"
 			curl -L ${RELEASE_TARBALL_URL} > ${RELEASE_TARGZ}
 			tar -xf ${RELEASE_TARGZ}
 			RELEASE_DIR=$(find ./ -maxdepth 1 -mindepth 1 -type d | grep -F "${RELEASE_ORG}-${RELEASE_REPO}-" | head -n 1)
 			
-			echo "Running setup for ${RELEASE_TAG_NAME}"
+			echo "Running install for ${RELEASE_TAG_NAME}"
 			# Note that this will download, import and then run the setup script
 			${RELEASE_DIR}/forklift run builtin install current install
 		fi

@@ -38,6 +38,10 @@ case ${COMMAND} in
 	${SELF_DIR}/builtin/install/uninstall
 	exit 0
 	;;
+	update)
+	${SELF_DIR}/install
+	exit 0
+	;;
 	*)
 	;;
 esac
