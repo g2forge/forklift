@@ -37,15 +37,15 @@ If you want to run a script from another version of forklift you can do so throu
 
 # Pallet Specifications
 
-Each pallet is identified by a combination of a warehouse identifier, pallet identifier and version.
-The warehouse identifier must be a reversed DNS name (e.g. `com.g2forge`) matching the server hosting the warehouse.
-The warehouse is then used to select a jack, which can import pallets from that warehouse.
-The format of the pallet identifier and version depend on the jack (warehouse), but POSIX paths and [semantic versions](https://semver.org/) are common.
+Each pallet is identified by a combination of a warehouse, pallet and version specifiers.
+The warehouse specifier must be a reversed DNS name (e.g. `com.g2forge`) matching the server hosting the warehouse.
+The format of the pallet and version specifiers depend on the jack, but POSIX paths and [semantic versions](https://semver.org/) are common.
 
-Currently supported warehouses (jacks):
+Currently supported warehouses:
 
-* `com.github`: the pallet identifier must be of the form `<organization-or-user>/<repository>` and the version must be `<branch-or-tag-or-commit>`
-* `builtin`: used to run scripts from within forklift itself, critically helpful for bootstraping forklift
+* `com.github`: the pallet specifier must be of the form `<organization-or-user>/<repository>` and the version specifier must be `<branch-or-tag-or-commit>`
+* GitHub enterprise: the warehouse specifier must name a running [GitHub Enterprise server](https://enterprise.github.com) (as determined by querying the API) and the pallet and version identifiers the same as for `com.github`.
+* `builtin`: a special case of a warehouse specifier not being a reversed DNS name. The builtin warehouse is used to run scripts from within forklift itself, critically helpful for bootstraping forklift
 
 # Glossary
 

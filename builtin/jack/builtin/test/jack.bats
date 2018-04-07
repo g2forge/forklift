@@ -13,6 +13,11 @@ function jack () {
   [ "$status" -eq 1 ]
 }
 
+@test "help" {
+  jack --help
+  [ "$status" -eq 0 ]
+}
+
 @test "bad warehouse" {
   jack invalid common current
   [ "$status" -eq 1 ]

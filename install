@@ -26,7 +26,7 @@ if [[ $# -eq 1 ]]; then
 		# Second phase of the installer, responsible for actually installing *this* version of forklift
 		echo "Installing forklift"
 		. ${SELF_DIR}/builtin/common/source
-		BIN_DIR=${CACHE_ROOT}/bin
+		BIN_DIR=${FLCACHE_ROOT}/bin
 		mkdir -p ${BIN_DIR}
 		if [ ! -f ${BIN_DIR}/forklift ]; then
 cat > ${BIN_DIR}/forklift <<EOF

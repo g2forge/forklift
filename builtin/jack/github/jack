@@ -4,8 +4,9 @@ set -eu -o pipefail
 function help () {
 	echo "$(basename ${0}): Jack for pallets from github"
 	echo
-	echo "Usage: $(basename ${0}) import|path|run github <org/repo> <refspec>"
+	echo "Usage: $(basename ${0}) test|import|path|run com.github <org/repo> <refspec>"
 	echo -e "\tcommands:"
+	echo -e "\t\ttest:              Test whether this jack can move the specified pallet"
 	echo -e "\t\timport:            Import the pallet"
 	echo -e "\t\tpath:              Get the path of the specified pallet on the local machine"
 	echo -e "\t\trun <...> command: Run the specified command in the pallet"
@@ -27,48 +28,74 @@ function install () {
 	fi
 }
 
-if [[ $# -lt 4 ]]; then
-	fail "Too few arguments, 4 (at least) are required!"
-fi
-
+args_min 1
 COMMAND="${1}"
+
+case ${COMMAND} in
+	-h|--help|help)
+	help
+	exit 0
+esac
+
+args_min 4
 WAREHOUSE="${2}"
 PALLET="${3}"
 VERSION="${4}"
 shift 4
 
-CACHE_DIR=${CACHE_ROOT}/$(basename ${SELF_DIR})/${WAREHOUSE}/${PALLET}/${VERSION}
+CACHE_DIR=${FLCACHE_ROOT}/$(basename ${SELF_DIR})/${WAREHOUSE}/${PALLET}/${VERSION}
 
+function warehouse2host () {
+	echo "${WAREHOUSE}" | sed -e 's/\./\n/g' | tac | tr -s '\n' '.' | sed -e 's/.$/\n/'
+}
+function verify () {
+	if [ "${WAREHOUSE}" != "com.github" ]; then
+		GHHOST=$(warehouse2host)
+		echo -e "${CFMT_INFO}Checking if ${GHHOST} is a GitHub Enterprise server${CFMT_NORMAL}" >&2
+		if ! (curl --connect-timeout 1 -is "https://${GHHOST}/api/v3" 2> /dev/null | grep -qe '^X-GitHub-'); then
+			if ! (curl --connect-timeout 1 -is "http://${GHHOST}/api/v3" 2> /dev/null | grep -qe '^X-GitHub-'); then
+				fail "Unknown warehouse: ${WAREHOUSE}"
+			fi
+		fi
+	fi
+}
 function import () {
 	if [ ! -d ${CACHE_DIR} ]; then
+		verify
 		install git git
 		
-		echo -e "${CFMT_INFO}Importing ${WAREHOUSE} ${PALLET} ${VERSION}${CFMT_NORMAL}"
+		echo -e "${CFMT_INFO}Importing ${WAREHOUSE} ${PALLET} ${VERSION}${CFMT_NORMAL}" >&2
 		PARENT_DIR=$(dirname ${CACHE_DIR})
 		mkdir -p ${PARENT_DIR}
-		cd ${PARENT_DIR}
-		git clone git@github.com:${PALLET}.git $(basename ${CACHE_DIR})
+		pushd ${PARENT_DIR} > /dev/null 2>&1
+		git clone -- git@$(warehouse2host):${PALLET}.git $(basename ${CACHE_DIR})
 		cd ${CACHE_DIR}
-		git checkout ${VERSION}
+		BRANCH=$(git rev-parse --abbrev-ref HEAD)
+		if [ "${BRANCH}" != "${VERSION}" ]; then
+			git checkout -b ${VERSION} ${VERSION}
+		fi
+		if [ "Cygwin" == $(${SELF_DIR}/../../common/osinfo -d) ]; then
+			echo -e "${CFMT_INFO}Fixing cygwin symlinks${CFMT_NORMAL}" >&2
+			git config core.symlinks true
+			git checkout -f
+		fi
+		popd > /dev/null 2>&1
 	fi
 }
 
 case ${COMMAND} in
-	-h|--help|help)
-	help
+	test)
+	args_max 4
+	verify
 	;;
 	import)
-	if [[ $# -gt 0 ]]; then
-		fail "Too many arguments!"
-	fi
+	args_max 4
 	import
 	;;
 	path)
+	args_max 4
 	import
 	echo $(cd ${CACHE_DIR} && pwd -P)
-	if [[ $# -gt 0 ]]; then
-		fail "Too many arguments!"
-	fi
 	;;
 	run)
 	import
@@ -77,9 +104,12 @@ case ${COMMAND} in
 	${COMMAND} $@
 	;;
 	delete)
+	args_max 4
+	verify
 	rm -rf ${CACHE_DIR}
 	;;
 	*)
 	fail "Unknown command: ${COMMAND}"
 	;;
 esac
+

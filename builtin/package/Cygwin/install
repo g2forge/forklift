@@ -13,17 +13,17 @@ SELF=${SELF_DIR}/$(basename ${0})
 
 . ${SELF_DIR}/../../common/source
 
-if [[ $# -lt 1 ]]; then
-	fail "Too few arguments, 1 (at least) is required!"
-fi
+# Note that there can be more than one package to install...
+args_min 1
 
 EXECUTABLE_NAME="setup-$(${SELF_DIR}/../../common/osinfo -a).exe"
 EXECUTABLE_FILE="${SELF_DIR}/${EXECUTABLE_NAME}"
 if [ ! -f ${EXECUTABLE_FILE} ]; then
+	echo -e "${CFMT_INFO}Downloading cygwin installer ${CFMT_NORMAL}" >&2
 	curl https://cygwin.com/${EXECUTABLE_NAME} -o ${EXECUTABLE_FILE}
 	chmod +x ${EXECUTABLE_FILE}
 fi
-echo -e "${CFMT_INFO}Intalling ${@} using cygwin installer ${CFMT_NORMAL}"
+echo -e "${CFMT_INFO}Intalling ${@} using cygwin installer ${CFMT_NORMAL}" >&2
 sleep 2
 ${EXECUTABLE_FILE} -q -W -P $@
-echo -e "${CFMT_INFO}Intalled ${@} ${CFMT_NORMAL}"
+echo -e "${CFMT_INFO}Intalled ${@} ${CFMT_NORMAL}" >&2

@@ -4,3 +4,19 @@ function fail () {
 	help
 	exit 1
 }
+
+function args_min () {
+	if [[ ${#BASH_ARGV[@]} -lt ${1} ]]; then
+		fail "Too few arguments, ${1} (at least) required!"
+	fi
+}
+function args_max () {
+	if [[ ${#BASH_ARGV[@]} -gt ${1} ]]; then
+		fail "Too many arguments, ${1} (at most) allowed!"
+	fi
+}
+function args_eq () {
+	if [[ ${#BASH_ARGV[@]} -ne ${1} ]]; then
+		fail "Wrong number of arguments, expected exactly ${1}!"
+	fi
+}
