@@ -19,6 +19,7 @@ cat > ${DELETER} <<EOF
 set -eu -o pipefail
 
 echo "Deleting forklift cache"
+sleep 1s
 rm -rf ${FLCACHE_ROOT}
 
 echo "Removing forklift from path"
@@ -30,4 +31,5 @@ echo -e "${CFMT_SUCCESS}Success${CFMT_NORMAL}!"
 rm -rf ${DELETER}
 EOF
 chmod +x ${DELETER}
-${DELETER}
+echo -e "Forking delete script to ensure complete deletion"
+${DELETER} &
