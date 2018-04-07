@@ -26,7 +26,8 @@ TEMP_PROFILE=\$(mktemp)
 grep -vF "forklift" ~/.bash_profile || true > \${TEMP_PROFILE}
 mv \${TEMP_PROFILE} ~/.bash_profile
 
-echo -e "${CFMT_SUCCESS}Succes${CFMT_NORMAL}!"
+echo -e "${CFMT_SUCCESS}Success${CFMT_NORMAL}!"
+rm -rf ${DELETER}
 EOF
 chmod +x ${DELETER}
 ${DELETER}
