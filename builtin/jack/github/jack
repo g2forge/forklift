@@ -10,6 +10,8 @@ function help () {
 	echo -e "\t\timport:            Import the pallet"
 	echo -e "\t\tpath:              Get the path of the specified pallet on the local machine"
 	echo -e "\t\trun <...> command: Run the specified command in the pallet"
+	echo -e "\t\tupdate:            Check for and install updates to the specified pallet (for example if the version is a branch)"
+	echo -e "\t\tdelete:            Delete the specified pallet"
 	echo
 }
 
@@ -68,11 +70,11 @@ function import () {
 		PARENT_DIR=$(dirname ${CACHE_DIR})
 		mkdir -p ${PARENT_DIR}
 		pushd ${PARENT_DIR} > /dev/null 2>&1
-		git clone -- git@$(warehouse2host):${PALLET}.git $(basename ${CACHE_DIR})
+		git clone -- git@$(warehouse2host):${PALLET}.git $(basename ${CACHE_DIR}) >&2
 		cd ${CACHE_DIR}
 		BRANCH=$(git rev-parse --abbrev-ref HEAD)
 		if [ "${BRANCH}" != "${VERSION}" ]; then
-			git checkout -b ${VERSION} ${VERSION}
+			git checkout -b ${VERSION} ${VERSION} >&2
 		fi
 		if [ "Cygwin" == $(${SELF_DIR}/../../common/osinfo -d) ]; then
 			echo -e "${CFMT_INFO}Fixing cygwin symlinks${CFMT_NORMAL}" >&2
@@ -80,8 +82,20 @@ function import () {
 			git checkout -f
 		fi
 		popd > /dev/null 2>&1
-		echo -e "${CFMT_SUCCESS}Import successful${CFMT_NORMAL}!"
+		echo -e "${CFMT_SUCCESS}Import successful${CFMT_NORMAL}!" >&2
 	fi
+}
+function update () {
+	pushd ${CACHE_DIR} > /dev/null 2>&1
+	TRACKING=$(git branch -lvv | grep -F "* ${VERSION}" | sed -e "s/* ${VERSION} [0-9a-f]* \\(\\[\\([^]]*\\)\\]\\)*.*/\2/")
+	if [[ "${TRACKING}" != "" ]]; then
+		echo -e "${CFMT_INFO}Updating ${WAREHOUSE} ${PALLET} ${VERSION}${CFMT_NORMAL}" >&2
+		git pull >&2
+	else
+		echo -e "${CFMT_INFO}Skipping update of ${WAREHOUSE} ${PALLET} ${VERSION}, not tracking a branch${CFMT_NORMAL}" >&2
+	fi
+echo -e "${CFMT_SUCCESS}Update successful${CFMT_NORMAL}!" >&2
+	popd > /dev/null 2>&1
 }
 
 case ${COMMAND} in
@@ -103,6 +117,11 @@ case ${COMMAND} in
 	COMMAND=$(cd ${CACHE_DIR} && pwd -P)/${1}
 	shift
 	${COMMAND} $@
+	;;
+	update)
+	args_max 4
+	verify
+	update
 	;;
 	delete)
 	args_max 4
