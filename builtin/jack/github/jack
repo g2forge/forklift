@@ -86,11 +86,16 @@ function import () {
 	fi
 }
 function update () {
-	echo -e "${CFMT_INFO}Updating ${WAREHOUSE} ${PALLET} ${VERSION}${CFMT_NORMAL}" >&2
 	pushd ${CACHE_DIR} > /dev/null 2>&1
-	git pull >&2
+	TRACKING=$(git branch -lvv | grep -F "* ${VERSION}" | sed -e "s/* ${VERSION} [0-9a-f]* \\(\\[\\([^]]*\\)\\]\\)*.*/\2/")
+	if [[ "${TRACKING}" != "" ]]; then
+		echo -e "${CFMT_INFO}Updating ${WAREHOUSE} ${PALLET} ${VERSION}${CFMT_NORMAL}" >&2
+		git pull >&2
+	else
+		echo -e "${CFMT_INFO}Skipping update of ${WAREHOUSE} ${PALLET} ${VERSION}, not tracking a branch${CFMT_NORMAL}" >&2
+	fi
+echo -e "${CFMT_SUCCESS}Update successful${CFMT_NORMAL}!" >&2
 	popd > /dev/null 2>&1
-	echo -e "${CFMT_SUCCESS}Update successful${CFMT_NORMAL}!" >&2
 }
 
 case ${COMMAND} in
