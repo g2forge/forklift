@@ -27,3 +27,8 @@ function jack () {
   jack builtin common invalid
   [ "$status" -eq 1 ]
 }
+
+@test "update" {
+  jack update builtin common current
+  [ "$status" -eq 0 ]
+}

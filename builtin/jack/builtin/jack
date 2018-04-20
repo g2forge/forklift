@@ -10,6 +10,8 @@ function help () {
 	echo -e "\t\timport:            Import the pallet (nop for the builtin jack)"
 	echo -e "\t\tpath:              Get the path of the specified pallet on the local machine"
 	echo -e "\t\trun <...> command: Run the specified command in the pallet"
+	echo -e "\t\tupdate:            Check for and install updates to the specified pallet (always succeeds for this jack)"
+	echo -e "\t\tdelete:            Not supported for builtin pallets"
 	echo
 }
 
@@ -59,6 +61,9 @@ case ${COMMAND} in
 	COMMAND=$(cd ${SELF_DIR}/../../${PALLET} && pwd -P)/${1}
 	shift
 	${COMMAND} $@
+	;;
+	update)
+	# Nothing to do here, since builtin pallets are always up to date
 	;;
 	delete)
 	fail "Cannot delete builtin pallets"

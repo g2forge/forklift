@@ -4,14 +4,18 @@ set -eu -o pipefail
 function help () {
 	echo "$(basename ${0}): A pallet (package) manager"
 	echo
-	echo "Usage: $(basename ${0}) import|path|run <warehouse> <pallet> <version>"
+	echo "Usage: $(basename ${0}) version|upgrade|uninstall"
 	echo -e "\tcommands:"
 	echo -e "\t\tversion:           Print the version number for this install of forklift"
-	echo -e "\t\tupdate:            Ensure that the latest version of forklift is installed"
+	echo -e "\t\tupgrade:           Ensure that the latest version of forklift is installed"
 	echo -e "\t\tuninstall:         Uninstall and cleanup this forklift installation"
+	echo "Usage: $(basename ${0}) import|path|run|update|delete <warehouse> <pallet> <version>"
+	echo -e "\tcommands:"
 	echo -e "\t\timport:            Import the specific pallet to a local warehouse for consumption"
 	echo -e "\t\tpath:              Get the path of the specified pallet in the local warehouse"
 	echo -e "\t\trun <...> command: Run the specified command in the pallet"
+	echo -e "\t\tupdate:            Check for and install updates to the specified pallet (for example if the version is not exact)"
+	echo -e "\t\tdelete:            Delete the specified pallet"
 	echo
 }
 
@@ -40,7 +44,7 @@ case ${COMMAND} in
 	${SELF_DIR}/builtin/install/uninstall
 	exit 0
 	;;
-	update)
+	upgrade)
 	${SELF_DIR}/install
 	exit 0
 	;;
