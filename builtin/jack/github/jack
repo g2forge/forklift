@@ -45,7 +45,20 @@ PALLET="${3}"
 VERSION="${4}"
 shift 4
 
-CACHE_DIR=${FLCACHE_ROOT}/$(basename ${SELF_DIR})/${WAREHOUSE}/${PALLET}/${VERSION}
+JACKCACHE_ROOT=${FLCACHE_ROOT}/$(basename ${SELF_DIR})
+CACHE_DIR=${JACKCACHE_ROOT}/${WAREHOUSE}/${PALLET}/${VERSION}
+
+if [ ! -d ${JACKCACHE_ROOT} ]; then
+	cat >${JACKCACHE_ROOT}/README.md << EOF
+# $(basename ${SELF_DIR}) Cache
+
+This directory contains the pallets which have been installed by the [$(basename ${SELF_DIR}) jack](${SELF}).
+Within this directory, each installed pallet can be found at \`WAREHOUSE/PALLET/VERSION\`.
+Installed pallets local git repositories cloned from the warehouse which the current branch set to the \`VERSION\`.
+If the version is a branch (rather than a tag) then it will be set to track the correct upstream branch to allow updates.
+
+EOF
+fi
 
 function warehouse2host () {
 	echo "${WAREHOUSE}" | sed -e 's/\./\n/g' | tac | tr -s '\n' '.' | sed -e 's/.$/\n/'

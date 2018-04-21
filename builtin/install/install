@@ -19,6 +19,13 @@ BIN_DIR=${FLCACHE_ROOT}/bin
 echo "Installing forklift"
 mkdir -p ${BIN_DIR}
 INSTALL_DIR=$(cd ${SELF_DIR}/../.. && pwd -P)
+cat >${BIN_DIR}/README.md << EOF
+# Forklift Binaries
+
+This directory contains the main [forklift](https://github.com/g2forge/forklift) binaries, which are added to the path.
+The files in this directory were generated for the installation in \`${INSTALL_DIR}\`.
+
+EOF
 cat > ${BIN_DIR}/forklift <<EOF
 #!/bin/bash
 ${INSTALL_DIR}/forklift \$@
