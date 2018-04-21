@@ -24,7 +24,6 @@ cat >${BIN_DIR}/README.md << EOF
 
 This directory contains the main [forklift](https://github.com/g2forge/forklift) binaries, which are added to the path.
 The files in this directory were generated for the installation in \`${INSTALL_DIR}\`.
-
 EOF
 cat > ${BIN_DIR}/forklift <<EOF
 #!/bin/bash

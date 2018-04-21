@@ -33,7 +33,6 @@ Within each subdirectory you will find the following:
 * \`stdout\` which contains the standard output and error text
 
 For more information please see \`${SELF}\`.
-
 EOF
 fi
 

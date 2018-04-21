@@ -49,6 +49,7 @@ JACKCACHE_ROOT=${FLCACHE_ROOT}/$(basename ${SELF_DIR})
 CACHE_DIR=${JACKCACHE_ROOT}/${WAREHOUSE}/${PALLET}/${VERSION}
 
 if [ ! -d ${JACKCACHE_ROOT} ]; then
+	mkdir -p ${JACKCACHE_ROOT}
 	cat >${JACKCACHE_ROOT}/README.md << EOF
 # $(basename ${SELF_DIR}) Cache
 
@@ -56,7 +57,6 @@ This directory contains the pallets which have been installed by the [$(basename
 Within this directory, each installed pallet can be found at \`WAREHOUSE/PALLET/VERSION\`.
 Installed pallets local git repositories cloned from the warehouse which the current branch set to the \`VERSION\`.
 If the version is a branch (rather than a tag) then it will be set to track the correct upstream branch to allow updates.
-
 EOF
 fi
 
