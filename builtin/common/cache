@@ -19,6 +19,24 @@ if [ -z ${CACHE_ROOT+x} ]; then
 fi
 set -u
 
+if [ ! -d ${CACHE_ROOT} ]; then
+	mkdir -p ${CACHE_ROOT}
+	cat >${CACHE_ROOT}/README.md << EOF
+# Cache
+
+This directory contains the cached results of running various long-running commands.
+Each subdirectory is named by the SHA1 sum of the commands working directory, command and arguments.
+Within each subdirectory you will find the following:
+
+* \`cmd\` which contains the exact command which has been run
+* \`exitcode\` which contains the exit code
+* \`stdout\` which contains the standard output and error text
+
+For more information please see \`${SELF}\`.
+
+EOF
+fi
+
 for ARG in "$@"; do
 	CMD=( "${CMD[@]}" "$ARG" )
 done
