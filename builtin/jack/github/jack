@@ -20,6 +20,13 @@ SELF=${SELF_DIR}/$(basename ${0})
 
 . ${SELF_DIR}/../../common/source
 
+FLGHJACK_SCRIPT=.forklift
+FLGHJACK_POSTIMPORT=${FLGHJACK_SCRIPT}/post-import
+FLGHJACK_PREUPDATE=${FLGHJACK_SCRIPT}/pre-update
+FLGHJACK_POSTUPDATE=${FLGHJACK_SCRIPT}/post-update
+FLGHJACK_PREDELETE=${FLGHJACK_SCRIPT}/pre-delete
+FLGHJACK_POSTDELETE=${FLGHJACK_SCRIPT}/post-delete
+
 function install () {
 	COMMAND=${1}
 	PACKAGE=${2}
@@ -87,12 +94,17 @@ function import () {
 		cd ${CACHE_DIR}
 		BRANCH=$(git rev-parse --abbrev-ref HEAD)
 		if [ "${BRANCH}" != "${VERSION}" ]; then
-			git checkout -b ${VERSION} ${VERSION} >&2
+			echo -e "${CFMT_INFO}Switching to version ${VERSION}${CFMT_NORMAL}" >&2
+			REFSPEC=$(git show-ref | grep "/${VERSION}\$" | cut -f 2 -d ' ')
+			git checkout -b ${VERSION} ${REFSPEC} >&2
 		fi
 		if [ "Cygwin" == $(${SELF_DIR}/../../common/osinfo -d) ]; then
 			echo -e "${CFMT_INFO}Fixing cygwin symlinks${CFMT_NORMAL}" >&2
 			git config core.symlinks true
 			git checkout -f
+		fi
+		if [[ -x ${FLGHJACK_POSTIMPORT} ]]; then
+			FLBIN_DIR=${FLBIN_DIR} ${FLGHJACK_POSTIMPORT}
 		fi
 		popd > /dev/null 2>&1
 		echo -e "${CFMT_SUCCESS}Import successful${CFMT_NORMAL}!" >&2
@@ -103,11 +115,18 @@ function update () {
 	TRACKING=$(git branch -lvv | grep -F "* ${VERSION}" | sed -e "s/* ${VERSION} [0-9a-f]* \\(\\[\\([^]]*\\)\\]\\)*.*/\2/")
 	if [[ "${TRACKING}" != "" ]]; then
 		echo -e "${CFMT_INFO}Updating ${WAREHOUSE} ${PALLET} ${VERSION}${CFMT_NORMAL}" >&2
+		
+		if [[ -x ${FLGHJACK_PREUPDATE} ]]; then
+			FLBIN_DIR=${FLBIN_DIR} ${FLGHJACK_PREUPDATE}
+		fi
 		git pull >&2
+		if [[ -x ${FLGHJACK_POSTUPDATE} ]]; then
+			FLBIN_DIR=${FLBIN_DIR} ${FLGHJACK_POSTUPDATE}
+		fi
 	else
 		echo -e "${CFMT_INFO}Skipping update of ${WAREHOUSE} ${PALLET} ${VERSION}, not tracking a branch${CFMT_NORMAL}" >&2
 	fi
-echo -e "${CFMT_SUCCESS}Update successful${CFMT_NORMAL}!" >&2
+	echo -e "${CFMT_SUCCESS}Update successful${CFMT_NORMAL}!" >&2
 	popd > /dev/null 2>&1
 }
 
@@ -139,7 +158,25 @@ case ${COMMAND} in
 	delete)
 	args_max 4
 	verify
-	rm -rf ${CACHE_DIR}
+	echo -e "${CFMT_INFO}Deleting ${WAREHOUSE} ${PALLET} ${VERSION}${CFMT_NORMAL}" >&2
+	if [[ -x ${CACHE_DIR}/${FLGHJACK_PREDELETE} ]]; then
+		pushd ${CACHE_DIR} > /dev/null 2>&1
+		FLBIN_DIR=${FLBIN_DIR} ${FLGHJACK_PREDELETE}
+		popd > /dev/null 2>&1
+	fi
+	if [[ -x ${FLGHJACK_POSTDELETE} ]]; then
+		TEMPSCRIPT=$(mktemp)
+		chmod +x ${TEMPSCRIPT}
+		cat ${FLGHJACK_POSTDELETE} > ${TEMPSCRIPT}
+		
+		rm -rf ${CACHE_DIR}
+		
+		FLBIN_DIR=${FLBIN_DIR} ${TEMPSCRIPT}
+		rm -rf ${TEMPSCRIPT}
+	else
+		rm -rf ${CACHE_DIR}
+	fi
+	echo -e "${CFMT_SUCCESS}Delete successful${CFMT_NORMAL}!" >&2
 	;;
 	*)
 	fail "Unknown command: ${COMMAND}"
