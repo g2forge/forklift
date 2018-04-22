@@ -159,8 +159,10 @@ case ${COMMAND} in
 	args_max 4
 	verify
 	echo -e "${CFMT_INFO}Deleting ${WAREHOUSE} ${PALLET} ${VERSION}${CFMT_NORMAL}" >&2
-	if [[ -x ${FLGHJACK_PREDELETE} ]]; then
+	if [[ -x ${CACHE_DIR}/${FLGHJACK_PREDELETE} ]]; then
+		pushd ${CACHE_DIR} > /dev/null 2>&1
 		FLBIN_DIR=${FLBIN_DIR} ${FLGHJACK_PREDELETE}
+		popd > /dev/null 2>&1
 	fi
 	if [[ -x ${FLGHJACK_POSTDELETE} ]]; then
 		TEMPSCRIPT=$(mktemp)
