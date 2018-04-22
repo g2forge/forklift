@@ -5,4 +5,4 @@ SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
 SELF=${SELF_DIR}/$(basename ${0})
 
 echo "Installing forklift test pallet"
-ln -svfT ${SELF_DIR}/forklift-test ${FLBIN_DIR}/forklift-test
+ln -svfT $(cd ${SELF_DIR}/.. && pwd -P)/forklift-test ${FLBIN_DIR}/forklift-test
