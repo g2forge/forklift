@@ -21,10 +21,6 @@ if [[ $# -eq 1 ]]; then
 		help
 		exit 0
 		;;
-		-d|--download|download)
-		# Execute the first phase, which is the default operation to make life easy by allowing the user to "curl installer | bash"
-		# Note that the installer is split in phases to ensure even an old installer can install a new version
-		;;
 		--dev|dev|--development|development)
 		if [ -f ${SELF_DIR}/forklift ]; then
 			DEVINSTALL=1
