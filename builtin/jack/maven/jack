@@ -10,6 +10,7 @@ function help () {
 	echo -e "\t\timport:            Import the pallet"
 	echo -e "\t\tpath:              Get the path of the specified pallet on the local machine"
 	echo -e "\t\trun <...> command: Run the specified java command line with the pallet and classpath pre-specified"
+	echo -e "\t\tcommand:           Generate a command line to which the user can append arguments to invoke this pallet (JAR)"
 	echo -e "\t\tupdate:            Check for and install updates to the specified pallet (for example if the version is a SNAPSHOT)"
 	echo -e "\t\tdelete:            Delete the specified pallet"
 	echo
@@ -19,6 +20,30 @@ SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
 SELF=${SELF_DIR}/$(basename ${0})
 
 . ${SELF_DIR}/../../common/source
+
+FLMVNJACK_SCRIPT=.forklift
+FLMVNJACK_POSTIMPORT=${FLMVNJACK_SCRIPT}/post-import
+FLMVNJACK_PREUPDATE=${FLMVNJACK_SCRIPT}/pre-update
+FLMVNJACK_POSTUPDATE=${FLMVNJACK_SCRIPT}/post-update
+FLMVNJACK_PREDELETE=${FLMVNJACK_SCRIPT}/pre-delete
+FLMVNJACK_POSTDELETE=${FLMVNJACK_SCRIPT}/post-delete
+function flscript () {
+	SCRIPT="${1}"
+	
+	FILE=$(mktemp)
+	trap "{ rm -rf ${FILE}; }" EXIT
+	
+	set +e
+	unzip -p "${MVNPATH}" "${SCRIPT}" > ${FILE} 2> /dev/null
+	RESULT=$?
+	set -e
+	if [ "${RESULT}" -eq "0" ]; then
+		dos2unix ${FILE} > /dev/null 2>&1
+		chmod +x ${FILE}
+		FORKLIFT=${SELF_DIR}/../../../forklift WAREHOUSE="${WAREHOUSE}" PALLET="${PALLET}" VERSION="${VERSION}" FLBIN_DIR=${FLBIN_DIR} ${FILE}
+		rm -rf ${FILE}
+	fi
+}
 
 function install_any () {
 	COMMAND=${1}
@@ -66,10 +91,14 @@ function verify () {
 function import () {
 	verify
 	install_any mvn maven
-	mvn dependency:get "-DgroupId=${MVNGROUP}" "-DartifactId=${MVNARTIFACT}" "-Dversion=${MVNVERSION}" 1>&2
+	path
+	if [ ! -e ${MVNPATH} ]; then
+		mvn dependency:get "-DgroupId=${MVNGROUP}" "-DartifactId=${MVNARTIFACT}" "-Dversion=${MVNVERSION}" 1>&2
+		flscript ${FLMVNJACK_POSTIMPORT}
+	fi
 }
 function path () {
-	MVNGROUP="${MVNGROUP}" MVNARTIFACT="${MVNARTIFACT}" MVNVERSION="${MVNVERSION}" ${SELF_DIR}/mvn-path
+	MVNPATH=$(MVNGROUP="${MVNGROUP}" MVNARTIFACT="${MVNARTIFACT}" MVNVERSION="${MVNVERSION}" ${SELF_DIR}/mvn-path)
 }
 
 case ${COMMAND} in
@@ -85,11 +114,17 @@ case ${COMMAND} in
 	args_max 4
 	import
 	path
+	echo ${MVNPATH}
 	;;
 	run)
 	import
 	install_native unzip unzip
-	MVNGROUP="${MVNGROUP}" MVNARTIFACT="${MVNARTIFACT}" MVNVERSION="${MVNVERSION}" ${SELF_DIR}/mvn-run ${@}
+	MVNGROUP="${MVNGROUP}" MVNARTIFACT="${MVNARTIFACT}" MVNVERSION="${MVNVERSION}" CMDPRINT=0 MVNPATH=${MVNPATH} ${SELF_DIR}/mvn-run ${@}
+	;;
+	command)
+	import
+	install_native unzip unzip
+	MVNGROUP="${MVNGROUP}" MVNARTIFACT="${MVNARTIFACT}" MVNVERSION="${MVNVERSION}" CMDPRINT=1 MVNPATH=${MVNPATH} ${SELF_DIR}/mvn-run ${@}
 	;;
 	update)
 	args_max 4
@@ -99,7 +134,9 @@ case ${COMMAND} in
 	delete)
 	args_max 4
 	verify
-	rm -rf $(dirname $(path))
+	path
+	flscript ${FLMVNJACK_PREDELETE}
+	rm -rf $(dirname ${MVNPATH})
 	;;
 	*)
 	fail "Unknown command: ${COMMAND}"
