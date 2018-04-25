@@ -29,6 +29,6 @@ CLASSPATH=$(mvn dependency:build-classpath -DincludeScope=runtime | grep -v "^\[
 popd > /dev/null 2>&1
 
 JAR=$(MVNGROUP="${MVNGROUP}" MVNARTIFACT="${MVNARTIFACT}" MVNVERSION="${MVNVERSION}" ${SELF_DIR}/mvn-path)
-MAIN=$(unzip -p "${JAR}" "META-INF/MANIFEST.MF" | grep -F "Main-Class: " | sed -e 's#Main-Class: ##' | tr -d '\r')
+MAIN=$(unzip -p "${JAR}" "META-INF/MANIFEST.MF" | (grep "^Main-Class: " || true) | sed -e 's#^Main-Class: ##' | tr -d '\r')
 
 java -classpath "${CLASSPATH}" "${MAIN}" ${@}
