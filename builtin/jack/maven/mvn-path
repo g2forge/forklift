@@ -1,0 +1,67 @@
+#!/bin/bash
+set -eu -o pipefail
+
+DIRECTORY=$(mktemp -d)
+trap "{ rm -rf ${DIRECTORY}; }" EXIT
+
+pushd ${DIRECTORY} > /dev/null 2>&1
+cat > pom.xml <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.g2forge.forklift</groupId>
+    <artifactId>temp</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>${MVNGROUP}</groupId>
+            <artifactId>${MVNARTIFACT}</artifactId>
+            <version>${MVNVERSION}</version>
+        </dependency>
+    </dependencies>
+    <build>
+        <defaultGoal>generate-sources</defaultGoal>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>properties</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <phase>generate-sources</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <executable>echo</executable>
+                    <arguments>
+                        <argument>RETVAL=</argument>
+                        <argument>\${${MVNGROUP}:${MVNARTIFACT}:${MVNPACKAGING:-jar}}</argument>
+                    </arguments>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+EOF
+RETVAL=$(mvn | grep -F "RETVAL=" | sed -e 's#RETVAL= ##')
+popd > /dev/null 2>&1
+
+if which cygpath > /dev/null 2>&1; then
+	cygpath -u "${RETVAL}"
+else
+	echo "${RETVAL}"
+fi

@@ -1,0 +1,145 @@
+#!/bin/bash
+set -eu -o pipefail
+
+function help () {
+	echo "$(basename ${0}): Jack for pallets from maven"
+	echo
+	echo "Usage: $(basename ${0}) test|import|path|run org.maven <group:artifact> <version>"
+	echo -e "\tcommands:"
+	echo -e "\t\ttest:              Test whether this jack can move the specified pallet"
+	echo -e "\t\timport:            Import the pallet"
+	echo -e "\t\tpath:              Get the path of the specified pallet on the local machine"
+	echo -e "\t\trun <...> command: Run the specified java command line with the pallet and classpath pre-specified"
+	echo -e "\t\tcommand:           Generate a command line to which the user can append arguments to invoke this pallet (JAR)"
+	echo -e "\t\tupdate:            Check for and install updates to the specified pallet (for example if the version is a SNAPSHOT)"
+	echo -e "\t\tdelete:            Delete the specified pallet"
+	echo
+}
+
+SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
+SELF=${SELF_DIR}/$(basename ${0})
+
+. ${SELF_DIR}/../../common/source
+
+FLMVNJACK_SCRIPT=.forklift
+FLMVNJACK_POSTIMPORT=${FLMVNJACK_SCRIPT}/post-import
+FLMVNJACK_PREUPDATE=${FLMVNJACK_SCRIPT}/pre-update
+FLMVNJACK_POSTUPDATE=${FLMVNJACK_SCRIPT}/post-update
+FLMVNJACK_PREDELETE=${FLMVNJACK_SCRIPT}/pre-delete
+FLMVNJACK_POSTDELETE=${FLMVNJACK_SCRIPT}/post-delete
+function flscript () {
+	SCRIPT="${1}"
+	
+	FILE=$(mktemp)
+	trap "{ rm -rf ${FILE}; }" EXIT
+	
+	set +e
+	unzip -p "${MVNPATH}" "${SCRIPT}" > ${FILE} 2> /dev/null
+	RESULT=$?
+	set -e
+	if [ "${RESULT}" -eq "0" ]; then
+		dos2unix ${FILE} > /dev/null 2>&1
+		chmod +x ${FILE}
+		FORKLIFT=${SELF_DIR}/../../../forklift WAREHOUSE="${WAREHOUSE}" PALLET="${PALLET}" VERSION="${VERSION}" FLBIN_DIR=${FLBIN_DIR} ${FILE}
+		rm -rf ${FILE}
+	fi
+}
+
+function install_any () {
+	COMMAND=${1}
+	PACKAGE=${2}
+	if ! which ${COMMAND} > /dev/null 2>&1; then
+		${SELF_DIR}/../../common/install ${PACKAGE}
+	fi
+}
+function install_native () {
+	COMMAND=${1}
+	PACKAGE=${2}
+	if ! which ${COMMAND} > /dev/null 2>&1; then
+		${SELF_DIR}/../../common/install ${PACKAGE}
+	elif [[ $(which ${COMMAND}) = *"/cygdrive/"* ]]; then
+		${SELF_DIR}/../../common/install ${PACKAGE}
+	fi
+}
+
+args_min 1
+COMMAND="${1}"
+
+case ${COMMAND} in
+	-h|--help|help)
+	help
+	exit 0
+esac
+
+args_min 4
+WAREHOUSE="${2}"
+PALLET="${3}"
+VERSION="${4}"
+shift 4
+
+function verify () {
+	if [ "${WAREHOUSE}" != "org.maven" ]; then
+		fail "Unknown warehouse: ${WAREHOUSE}"
+	fi
+	if [[ ! "${PALLET}" =~ [^:][^:]*:[^:][^:]* ]]; then
+		fail "Unknown pallet: ${PALLET}"
+	fi
+	MVNGROUP=$(echo "${PALLET}" | cut -f 1 -d ':')
+	MVNARTIFACT=$(echo "${PALLET}" | cut -f 2 -d ':')
+	MVNVERSION="${VERSION}"
+}
+function import () {
+	verify
+	install_any mvn maven
+	path
+	if [ ! -e ${MVNPATH} ]; then
+		mvn dependency:get "-DgroupId=${MVNGROUP}" "-DartifactId=${MVNARTIFACT}" "-Dversion=${MVNVERSION}" 1>&2
+		flscript ${FLMVNJACK_POSTIMPORT}
+	fi
+}
+function path () {
+	MVNPATH=$(MVNGROUP="${MVNGROUP}" MVNARTIFACT="${MVNARTIFACT}" MVNVERSION="${MVNVERSION}" ${SELF_DIR}/mvn-path)
+}
+
+case ${COMMAND} in
+	test)
+	args_max 4
+	verify
+	;;
+	import)
+	args_max 4
+	import
+	;;
+	path)
+	args_max 4
+	import
+	path
+	echo ${MVNPATH}
+	;;
+	run)
+	import
+	install_native unzip unzip
+	MVNGROUP="${MVNGROUP}" MVNARTIFACT="${MVNARTIFACT}" MVNVERSION="${MVNVERSION}" CMDPRINT=0 MVNPATH=${MVNPATH} ${SELF_DIR}/mvn-run ${@}
+	;;
+	command)
+	import
+	install_native unzip unzip
+	MVNGROUP="${MVNGROUP}" MVNARTIFACT="${MVNARTIFACT}" MVNVERSION="${MVNVERSION}" CMDPRINT=1 MVNPATH=${MVNPATH} ${SELF_DIR}/mvn-run ${@}
+	;;
+	update)
+	args_max 4
+	verify
+	fail "Maven jack does not support SNAPSHOT versions (yet)"
+	;;
+	delete)
+	args_max 4
+	verify
+	path
+	flscript ${FLMVNJACK_PREDELETE}
+	rm -rf $(dirname ${MVNPATH})
+	;;
+	*)
+	fail "Unknown command: ${COMMAND}"
+	;;
+esac
+

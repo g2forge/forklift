@@ -35,6 +35,9 @@ case ${WAREHOUSE} in
 	com.github)
 	echo "github"
 	;;
+	org.maven)
+	echo "maven"
+	;;
 	*)
 	pushd ${SELF_DIR} > /dev/null 2>&1
 		echo -e "${CFMT_INFO}Searching for jacks for pallet ${WAREHOUSE} ${PALLET} ${VERSION}${CFMT_NORMAL}" >&2

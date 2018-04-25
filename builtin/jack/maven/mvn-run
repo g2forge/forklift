@@ -1,0 +1,38 @@
+#!/bin/bash
+set -eu -o pipefail
+
+SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
+SELF=${SELF_DIR}/$(basename ${0})
+
+DIRECTORY=$(mktemp -d)
+trap "{ rm -rf ${DIRECTORY}; }" EXIT
+
+pushd ${DIRECTORY} > /dev/null 2>&1
+cat > pom.xml <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.g2forge.forklift</groupId>
+    <artifactId>temp</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>${MVNGROUP}</groupId>
+            <artifactId>${MVNARTIFACT}</artifactId>
+            <version>${MVNVERSION}</version>
+        </dependency>
+    </dependencies>
+</project>
+EOF
+CLASSPATH=$(mvn dependency:build-classpath -DincludeScope=runtime | grep -v "^\[" | tr -d '\r')
+popd > /dev/null 2>&1
+
+MVNPATH=$(MVNGROUP="${MVNGROUP}" MVNARTIFACT="${MVNARTIFACT}" MVNVERSION="${MVNVERSION}" ${SELF_DIR}/mvn-path)
+MAIN=$(unzip -p "${MVNPATH}" "META-INF/MANIFEST.MF" | (grep "^Main-Class: " || true) | sed -e 's#^Main-Class: ##' | tr -d '\r')
+
+if [ "${CMDPRINT}" -eq "0" ]; then
+	java -classpath "${CLASSPATH}" "${MAIN}" ${@}
+else
+	echo java -classpath "\"${CLASSPATH}\"" "\"${MAIN}\"" ${@}
+fi

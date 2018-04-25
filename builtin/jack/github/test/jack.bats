@@ -1,7 +1,7 @@
 BATS_WAREHOUSE="sstephenson/bats"
 BATS_VERSION="v0.4.0"
 FL_WAREHOUSE="g2forge/forklift"
-FL_VERSION="testpallet"
+FL_VERSION="pallet-test"
 
 function jack () {
 	run ${BATS_TEST_DIRNAME}/../jack ${@}
