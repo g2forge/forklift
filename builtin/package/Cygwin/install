@@ -36,7 +36,15 @@ if [ ${#PACKAGES_CYGWIN[@]} -ne 0 ]; then
 	fi
 	echo -e "${CFMT_INFO}Intalling ${PACKAGES_CYGWIN[@]} using cygwin installer ${CFMT_NORMAL}" >&2
 	sleep 2
-	${EXECUTABLE_FILE} -q -W -P ${PACKAGES_CYGWIN[@]}
+	
+	PS1_TEMPDIR=$(mktemp -d)
+	trap "{ rm -rf ${PS1_TEMPDIR}; }" EXIT
+	cat > ${PS1_TEMPDIR}/install.ps1 <<EOF
+\$ErrorActionPreference = "Stop"
+$(cygpath -w ${EXECUTABLE_FILE}) -q -W -P ${PACKAGES_CYGWIN[@]}
+pause
+EOF
+	powershell -NoProfile -ExecutionPolicy Bypass -Command "\$p = Start-Process powershell \"-Command $(cygpath -w ${PS1_TEMPDIR}/install.ps1)\" -Verb runAs -PassThru -Wait; Exit \$p.ExitCode"
 fi
 
 echo -e "${CFMT_SUCCESS}Intalled ${@}${CFMT_NORMAL}" >&2

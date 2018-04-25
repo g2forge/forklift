@@ -19,6 +19,7 @@ if which mvn > /dev/null 2>&1; then
 fi
 
 MVN_TEMPDIR=$(mktemp -d)
+trap "{ rm -rf ${MVN_TEMPDIR}; }" EXIT
 echo -e "${CFMT_INFO}Installing maven${CFMT_NORMAL} (temp dir is ${MVN_TEMPDIR})" >&2
 
 echo -e "${CFMT_INFO}Getting download link${CFMT_NORMAL}" >&2
@@ -49,6 +50,5 @@ echo "Success"
 pause
 EOF
 powershell -NoProfile -ExecutionPolicy Bypass -Command "\$p = Start-Process powershell \"-Command $(cygpath -w ${MVN_TEMPDIR}/setpath.ps1)\" -Verb runAs -PassThru -Wait; Exit \$p.ExitCode"
-rm -rf ${MVN_TEMPDIR}
 
 echo -e "${CFMT_SUCCESS}Successfully installed maven${CFMT_NORMAL}!" >&2
