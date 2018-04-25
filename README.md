@@ -44,7 +44,7 @@ If you want to run a script from another version of forklift you can do so throu
 To run [bulldozer catalog](https://github.com/g2forge/bulldozer/blob/master/bd-build/src/main/java/com/g2forge/bulldozer/build/Catalog.java) on your project:
 
 ```
- ./forklift run org.maven com.g2forge.bulldozer:bd-build 0.0.1 com.g2forge.bulldozer.build.Catalog <PATH TO PROJECT>
+ ./forklift run org.maven com.g2forge.bulldozer:bd-build 0.0.2 catalog <PATH TO PROJECT>
 ```
 
 This examples shows the use of the `maven` warehouse which allows one to reference JARs (and any other maven artifacts) as pallets.
