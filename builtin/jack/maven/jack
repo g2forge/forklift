@@ -20,10 +20,19 @@ SELF=${SELF_DIR}/$(basename ${0})
 
 . ${SELF_DIR}/../../common/source
 
-function install () {
+function install_any () {
 	COMMAND=${1}
 	PACKAGE=${2}
 	if ! which ${COMMAND} > /dev/null 2>&1; then
+		${SELF_DIR}/../../common/install ${PACKAGE}
+	fi
+}
+function install_native () {
+	COMMAND=${1}
+	PACKAGE=${2}
+	if ! which ${COMMAND} > /dev/null 2>&1; then
+		${SELF_DIR}/../../common/install ${PACKAGE}
+	elif [[ $(which ${COMMAND}) = *"/cygdrive/"* ]]; then
 		${SELF_DIR}/../../common/install ${PACKAGE}
 	fi
 }
@@ -56,7 +65,7 @@ function verify () {
 }
 function import () {
 	verify
-	install mvn maven
+	install_any mvn maven
 	mvn dependency:get "-DgroupId=${MVNGROUP}" "-DartifactId=${MVNARTIFACT}" "-Dversion=${MVNVERSION}" 1>&2
 }
 function path () {
@@ -79,6 +88,7 @@ case ${COMMAND} in
 	;;
 	run)
 	import
+	install_native unzip unzip
 	MVNGROUP="${MVNGROUP}" MVNARTIFACT="${MVNARTIFACT}" MVNVERSION="${MVNVERSION}" ${SELF_DIR}/mvn-run ${@}
 	;;
 	update)
