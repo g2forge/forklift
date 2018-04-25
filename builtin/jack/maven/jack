@@ -1,0 +1,100 @@
+#!/bin/bash
+set -eu -o pipefail
+
+function help () {
+	echo "$(basename ${0}): Jack for pallets from maven"
+	echo
+	echo "Usage: $(basename ${0}) test|import|path|run org.maven <group:artifact> <version>"
+	echo -e "\tcommands:"
+	echo -e "\t\ttest:              Test whether this jack can move the specified pallet"
+	echo -e "\t\timport:            Import the pallet"
+	echo -e "\t\tpath:              Get the path of the specified pallet on the local machine"
+	echo -e "\t\trun <...> command: Run the specified command in the pallet"
+	echo -e "\t\tupdate:            Check for and install updates to the specified pallet (for example if the version is a SNAPSHOT)"
+	echo -e "\t\tdelete:            Delete the specified pallet"
+	echo
+}
+
+SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
+SELF=${SELF_DIR}/$(basename ${0})
+
+. ${SELF_DIR}/../../common/source
+
+function install () {
+	COMMAND=${1}
+	PACKAGE=${2}
+	if ! which ${COMMAND} > /dev/null 2>&1; then
+		${SELF_DIR}/../../common/install ${PACKAGE}
+	fi
+}
+
+args_min 1
+COMMAND="${1}"
+
+case ${COMMAND} in
+	-h|--help|help)
+	help
+	exit 0
+esac
+
+args_min 4
+WAREHOUSE="${2}"
+PALLET="${3}"
+VERSION="${4}"
+shift 4
+
+function verify () {
+	if [ "${WAREHOUSE}" != "org.maven" ]; then
+		fail "Unknown warehouse: ${WAREHOUSE}"
+	fi
+	if [[ ! "${PALLET}" =~ [^:][^:]*:[^:][^:]* ]]; then
+		fail "Unknown pallet: ${PALLET}"
+	fi
+	MVNGROUP=$(echo "${PALLET}" | cut -f 1 -d ':')
+	MVNARTIFACT=$(echo "${PALLET}" | cut -f 2 -d ':')
+	MVNVERSION="${VERSION}"
+}
+function import () {
+	verify
+	install mvn maven
+	mvn dependency:get "-DgroupId=${MVNGROUP}" "-DartifactId=${MVNARTIFACT}" "-Dversion=${MVNVERSION}" 1>&2
+}
+function path () {
+	MVNGROUP="${MVNGROUP}" MVNARTIFACT="${MVNARTIFACT}" MVNVERSION="${MVNVERSION}" ${SELF_DIR}/mvn-path
+}
+
+case ${COMMAND} in
+	test)
+	args_max 4
+	verify
+	;;
+	import)
+	args_max 4
+	import
+	;;
+	path)
+	args_max 4
+	import
+	path
+	;;
+	run)
+	import
+	COMMAND=$(path)/${1}
+	shift
+	${COMMAND} ${@}
+	;;
+	update)
+	args_max 4
+	verify
+	fail "Maven jack does not support SNAPSHOT versions (yet)"
+	;;
+	delete)
+	args_max 4
+	verify
+	rm -rf $(dirname $(path))
+	;;
+	*)
+	fail "Unknown command: ${COMMAND}"
+	;;
+esac
+
