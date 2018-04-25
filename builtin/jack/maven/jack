@@ -9,7 +9,7 @@ function help () {
 	echo -e "\t\ttest:              Test whether this jack can move the specified pallet"
 	echo -e "\t\timport:            Import the pallet"
 	echo -e "\t\tpath:              Get the path of the specified pallet on the local machine"
-	echo -e "\t\trun <...> command: Run the specified command in the pallet"
+	echo -e "\t\trun <...> command: Run the specified java command line with the pallet and classpath pre-specified"
 	echo -e "\t\tupdate:            Check for and install updates to the specified pallet (for example if the version is a SNAPSHOT)"
 	echo -e "\t\tdelete:            Delete the specified pallet"
 	echo
@@ -79,9 +79,7 @@ case ${COMMAND} in
 	;;
 	run)
 	import
-	COMMAND=$(path)/${1}
-	shift
-	${COMMAND} ${@}
+	MVNGROUP="${MVNGROUP}" MVNARTIFACT="${MVNARTIFACT}" MVNVERSION="${MVNVERSION}" ${SELF_DIR}/mvn-run ${@}
 	;;
 	update)
 	args_max 4

@@ -1,0 +1,28 @@
+#!/bin/bash
+set -eu -o pipefail
+
+DIRECTORY=$(mktemp -d)
+trap "{ rm -rf ${DIRECTORY}; }" EXIT
+
+pushd ${DIRECTORY} > /dev/null 2>&1
+cat > pom.xml <<EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.g2forge.forklift</groupId>
+    <artifactId>temp</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+
+    <dependencies>
+        <dependency>
+            <groupId>${MVNGROUP}</groupId>
+            <artifactId>${MVNARTIFACT}</artifactId>
+            <version>${MVNVERSION}</version>
+        </dependency>
+    </dependencies>
+</project>
+EOF
+CLASSPATH=$(mvn dependency:build-classpath -DincludeScope=runtime | grep -v "^\[")
+popd > /dev/null 2>&1
+
+java -classpath "${CLASSPATH}" ${@}
