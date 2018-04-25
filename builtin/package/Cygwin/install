@@ -36,7 +36,7 @@ if [ ${#PACKAGES_CYGWIN[@]} -ne 0 ]; then
 	fi
 	echo -e "${CFMT_INFO}Intalling ${PACKAGES_CYGWIN[@]} using cygwin installer ${CFMT_NORMAL}" >&2
 	sleep 2
-	echo ${EXECUTABLE_FILE} -q -W -P ${PACKAGES_CYGWIN[@]}
+	${EXECUTABLE_FILE} -q -W -P ${PACKAGES_CYGWIN[@]}
 fi
 
 echo -e "${CFMT_SUCCESS}Intalled ${@}${CFMT_NORMAL}" >&2
