@@ -14,25 +14,44 @@ SELF=${SELF_DIR}/$(basename ${0})
 
 . ${SELF_DIR}/../common/source
 
-echo "Installing forklift"
-mkdir -p ${FLBIN_DIR}
 INSTALL_DIR=$(cd ${SELF_DIR}/../.. && pwd -P)
-cat >${FLBIN_DIR}/README.md << EOF
+if [ -x ${FLBIN_DIR}/forklift ]; then
+	echo "Found existing forklift install, checking version"
+	VER_EXIST=$(${FLBIN_DIR}/forklift version)
+	VER_MINE=$(${INSTALL_DIR}/forklift version)
+	if ${SELF_DIR}/../common/version isnewer ${VER_EXIST} ${VER_MINE}; then
+		echo "Found ${VER_EXIST}, will install ${VER_MINE} as an upgrade"
+		INSTALL_FLAG=1
+	else
+		echo "Found ${VER_EXIST}, will not install ${VER_MINE} over it"
+		INSTALL_FLAG=0
+	fi
+else
+	INSTALL_FLAG=1
+fi
+
+if [ "${INSTALL_FLAG}" -ne 0 ]; then
+	echo "Installing forklift"
+	mkdir -p ${FLBIN_DIR}
+	cat >${FLBIN_DIR}/README.md << EOF
 # Forklift Binaries
 
 This directory contains the main [forklift](https://github.com/g2forge/forklift) binaries, which are added to the path.
 The files in this directory were generated for the installation in \`${INSTALL_DIR}\`.
 EOF
-cat > ${FLBIN_DIR}/forklift <<EOF
+	cat > ${FLBIN_DIR}/forklift <<EOF
 #!/bin/bash
 ${INSTALL_DIR}/forklift \$@
 EOF
-chmod 755 ${FLBIN_DIR}/forklift
-
-if ! grep -qF "forklift" ~/.bash_profile; then
-	echo "Adding forklift to path by modifying ~/.bash_profile"
-	echo "export PATH=\"\${PATH}:${FLBIN_DIR}\"" >> ~/.bash_profile
-	echo -e "${CFMT_SUCCESS}Succes${CFMT_NORMAL} (please create a new bash shell to use forklift)!"
+	chmod 755 ${FLBIN_DIR}/forklift
+	
+	if ! grep -qF "forklift" ~/.bash_profile; then
+		echo "Adding forklift to path by modifying ~/.bash_profile"
+		echo "export PATH=\"\${PATH}:${FLBIN_DIR}\"" >> ~/.bash_profile
+		echo -e "${CFMT_SUCCESS}Succes${CFMT_NORMAL} (please create a new bash shell to use forklift)!"
+	else
+		echo -e "${CFMT_SUCCESS}Succes${CFMT_NORMAL}!"
+	fi
 else
 	echo -e "${CFMT_SUCCESS}Succes${CFMT_NORMAL}!"
 fi
