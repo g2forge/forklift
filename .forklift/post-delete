@@ -8,6 +8,9 @@ function help () {
 	echo
 }
 
+SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
+SELF=${SELF_DIR}/$(basename ${0})
+
 . $(cd $(dirname ${FORKLIFT}) && pwd -P)/builtin/common/source
 
 DELETER=$(mktemp)
