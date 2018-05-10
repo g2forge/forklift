@@ -6,7 +6,7 @@ function help () {
 	echo
 	echo "Usage: $(basename ${0})"
 	echo -e "\tcommands:"
-	echo -e "\t\t--dev: Install forklift from the current directory for development testing"
+	echo -e "\t\t--dev: Install forklift from this directory for testing forklift"
 	echo
 }
 
