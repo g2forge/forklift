@@ -40,7 +40,7 @@ fi
 
 if [ ${DEVINSTALL} -ne 0 ]; then
 	echo "Performing a development install of forklift from current directory"
-	${SELF_DIR}/forklift run builtin install current install
+	${SELF_DIR}/forklift run builtin install current .forklift/post-import
 else
 	TEMPDIR=$(mktemp -d)
 	pushd ${TEMPDIR} 2>&1 >/dev/null
@@ -63,7 +63,7 @@ else
 				echo "Already up to date, skipping download and install"
 			else
 				echo "Installing forklift ${RELEASE_TAG_NAME}"
-				forklift run com.github ${RELEASE_ORG}/${RELEASE_REPO} ${RELEASE_TAG_NAME} builtin/install/install
+				forklift import com.github ${RELEASE_ORG}/${RELEASE_REPO} ${RELEASE_TAG_NAME}
 				
 				echo "Removing forklift ${INSTALLED_VERSION}"
 				forklift delete com.github ${RELEASE_ORG}/${RELEASE_REPO} ${INSTALLED_VERSION}
@@ -77,7 +77,7 @@ else
 			
 			echo "Running install for ${RELEASE_TAG_NAME}"
 			# Note that this will download, import and then run the setup script
-			${RELEASE_DIR}/forklift run com.github ${RELEASE_ORG}/${RELEASE_REPO} ${RELEASE_TAG_NAME} builtin/install/install
+			${RELEASE_DIR}/forklift import com.github ${RELEASE_ORG}/${RELEASE_REPO} ${RELEASE_TAG_NAME}
 		fi
 	popd 2>&1 >/dev/null
 	rm -rf ${TEMPDIR}
