@@ -39,6 +39,17 @@ This example shows the use of the `builtin` warehouse which references pallets i
 Note that the only version supported by the `builtin` warehouse is `current` denoting whatever version the currently running forklift install is.
 If you want to run a script from another version of forklift you can do so through the `com.github` warehouse, of course.
 
+## Example 3
+
+To run [bulldozer catalog](https://github.com/g2forge/bulldozer/blob/master/bd-build/src/main/java/com/g2forge/bulldozer/build/Catalog.java) on your project:
+
+```
+ ./forklift run org.maven com.g2forge.bulldozer:bd-build 0.0.2 catalog <PATH TO PROJECT>
+```
+
+This examples shows the use of the `maven` warehouse which allows one to reference JARs (and any other maven artifacts) as pallets.
+For more information about running commands from maven pallets (artifacts), please read the [maven jack documentation](builtin/jack/maven/README.md).
+
 # Pallet Specifications
 
 Each pallet is identified by a combination of a warehouse, pallet and version specifiers.
@@ -49,6 +60,7 @@ Currently supported warehouses:
 
 * [`com.github`](builtin/jack/github/README.md): the pallet specifier must be of the form `<organization-or-user>/<repository>` and the version specifier must be `<branch-or-tag-or-commit>`
 * GitHub enterprise: the warehouse specifier must name a running [GitHub Enterprise server](https://enterprise.github.com) (as determined by querying the API) and the pallet and version identifiers the same as for `com.github`.
+* [`org.maven`](builtin/jack/maven/README.md): the pallet specifier must be of the form `<group>:<artifact>`.
 * [`builtin`](builtin/jack/builtin/README.md): a special case of a warehouse specifier not being a reversed DNS name. The builtin warehouse is used to run scripts from within forklift itself, critically helpful for bootstraping forklift
 
 # Glossary

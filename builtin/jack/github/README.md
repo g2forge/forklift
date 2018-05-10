@@ -12,3 +12,5 @@ In order to allow pallets from github to install scripts, and cleanup after them
 * `post-update` will be run from the root of the pallet, after an update is successful
 * `pre-delete` will be run from the root of the pallet, before deleting the pallet
 * `post-delete` will be run in a random directory, from a temporary script without access to the contents of the pallet (obviously), after the pallet has been deleted
+
+Please see the [scripts documentation](../README.md#scripts) for more about the environment variables available to scripts.

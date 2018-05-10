@@ -16,14 +16,35 @@ SELF=${SELF_DIR}/$(basename ${0})
 # Note that there can be more than one package to install...
 args_min 1
 
-EXECUTABLE_NAME="setup-$(${SELF_DIR}/../../common/osinfo -a).exe"
-EXECUTABLE_FILE="${SELF_DIR}/${EXECUTABLE_NAME}"
-if [ ! -f ${EXECUTABLE_FILE} ]; then
-	echo -e "${CFMT_INFO}Downloading cygwin installer ${CFMT_NORMAL}" >&2
-	curl https://cygwin.com/${EXECUTABLE_NAME} -o ${EXECUTABLE_FILE}
-	chmod +x ${EXECUTABLE_FILE}
+PACKAGES_CYGWIN=()
+for ARG in "$@"; do
+	SPECIALSCRIPT="${SELF_DIR}/special/${ARG}"
+    if [[ -x "${SPECIALSCRIPT}" ]]; then
+    	${SPECIALSCRIPT}
+    else
+    	PACKAGES_CYGWIN+=("${ARG}")
+    fi
+done
+
+if [ ${#PACKAGES_CYGWIN[@]} -ne 0 ]; then
+	EXECUTABLE_NAME="setup-$(${SELF_DIR}/../../common/osinfo -a).exe"
+	EXECUTABLE_FILE="${SELF_DIR}/${EXECUTABLE_NAME}"
+	if [ ! -f ${EXECUTABLE_FILE} ]; then
+		echo -e "${CFMT_INFO}Downloading cygwin installer ${CFMT_NORMAL}" >&2
+		curl https://cygwin.com/${EXECUTABLE_NAME} -o ${EXECUTABLE_FILE}
+		chmod +x ${EXECUTABLE_FILE}
+	fi
+	echo -e "${CFMT_INFO}Intalling ${PACKAGES_CYGWIN[@]} using cygwin installer ${CFMT_NORMAL}" >&2
+	sleep 2
+	
+	PS1_TEMPDIR=$(mktemp -d)
+	trap "{ rm -rf ${PS1_TEMPDIR}; }" EXIT
+	cat > ${PS1_TEMPDIR}/install.ps1 <<EOF
+\$ErrorActionPreference = "Stop"
+$(cygpath -w ${EXECUTABLE_FILE}) -q -W -P ${PACKAGES_CYGWIN[@]}
+pause
+EOF
+	powershell -NoProfile -ExecutionPolicy Bypass -Command "\$p = Start-Process powershell \"-Command $(cygpath -w ${PS1_TEMPDIR}/install.ps1)\" -Verb runAs -PassThru -Wait; Exit \$p.ExitCode"
 fi
-echo -e "${CFMT_INFO}Intalling ${@} using cygwin installer ${CFMT_NORMAL}" >&2
-sleep 2
-${EXECUTABLE_FILE} -q -W -P $@
-echo -e "${CFMT_INFO}Intalled ${@} ${CFMT_NORMAL}" >&2
+
+echo -e "${CFMT_SUCCESS}Intalled ${@}${CFMT_NORMAL}" >&2
