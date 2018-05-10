@@ -1,0 +1,40 @@
+#!/bin/bash
+set -eu -o pipefail
+
+function help () {
+	echo "$(basename ${0}): Script to manipulate versions"
+	echo
+	echo "Usage: $(basename ${0}) isnewer <assume-old> <assume-new>"
+	echo
+}
+
+SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
+SELF=${SELF_DIR}/$(basename ${0})
+
+. ${SELF_DIR}/source
+
+COMMAND=${1}
+shift
+
+case ${COMMAND} in
+	help|--help|-h)
+	help
+	;;
+	isnewer)
+	args_eq 3
+	V1=$(echo "${1}" | sed -e 's/^[vV]//')
+	V2=$(echo "${2}" | sed -e 's/^[vV]//')
+	VFIRST=$(echo -e "${V1}\n${V2}" | sort -V | head -n 1)
+	
+	if [ "${VFIRST}" == "${V1}" ]; then
+		echo "Second version is newer" >&2
+		exit 0
+	else
+		echo "First version is newer" >&2
+		exit 2
+	fi	
+	;;
+	*)
+	fail "Unknown command: ${COMMAND}"
+	;;
+esac

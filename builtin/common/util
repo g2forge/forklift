@@ -17,6 +17,6 @@ function args_max () {
 }
 function args_eq () {
 	if [[ ${#BASH_ARGV[@]} -ne ${1} ]]; then
-		fail "Wrong number of arguments, expected exactly ${1}!"
+		fail "Wrong number of arguments, expected exactly ${1} but got ${#BASH_ARGV[@]}!"
 	fi
 }
