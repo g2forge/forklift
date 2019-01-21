@@ -40,7 +40,7 @@ fi
 
 if [ ${DEVINSTALL} -ne 0 ]; then
 	echo "Performing a development install of forklift from current directory"
-	${SELF_DIR}/forklift run builtin install current .forklift/post-import
+	${SELF_DIR}/forklift run builtin ../ current .forklift/post-import
 else
 	TEMPDIR=$(mktemp -d)
 	pushd ${TEMPDIR} 2>&1 >/dev/null

@@ -3,6 +3,7 @@ set -eu -o pipefail
 
 function help () {
 	echo "$(basename ${0}): Install a package using the OS package manager"
+	# Note that this is unrelated to the forklift installer
 	echo
 	echo "Usage: $(basename ${0}) <package>*"
 	echo
