@@ -38,6 +38,7 @@ function flscript () {
 	RESULT=$?
 	set -e
 	if [ "${RESULT}" -eq "0" ]; then
+		create_flbin_dir
 		dos2unix ${FILE} > /dev/null 2>&1
 		chmod +x ${FILE}
 		FORKLIFT=${SELF_DIR}/../../../forklift WAREHOUSE="${WAREHOUSE}" PALLET="${PALLET}" VERSION="${VERSION}" FLBIN_DIR=${FLBIN_DIR} ${FILE}
