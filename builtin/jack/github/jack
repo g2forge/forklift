@@ -28,21 +28,12 @@ FLGHJACK_PREDELETE=${FLGHJACK_SCRIPT}/pre-delete
 FLGHJACK_POSTDELETE=${FLGHJACK_SCRIPT}/post-delete
 function flscript () {
 	SCRIPT="${1}"
-	if [[ "$(dirname ${SCRIPT})" == "${FLGHJACK_SCRIPT}" ]]; then
-		# Handle the case where we're already in the cached directory
-		if [[ -x ${SCRIPT} ]]; then
-			create_flbin_dir
-			FORKLIFT=${SELF_DIR}/../../../forklift WAREHOUSE="${WAREHOUSE}" PALLET="${PALLET}" VERSION="${VERSION}" FLBIN_DIR=${FLBIN_DIR} ${SCRIPT}
-		fi
-	else
-		if [[ -x ${CACHE_DIR}/${SCRIPT} ]]; then
-			# Handle the case where we need to move to the cached directory before running the script
-			create_flbin_dir
-			pushd ${CACHE_DIR} > /dev/null 2>&1
-			FORKLIFT=${SELF_DIR}/../../../forklift WAREHOUSE="${WAREHOUSE}" PALLET="${PALLET}" VERSION="${VERSION}" FLBIN_DIR=${FLBIN_DIR} ${SCRIPT}
-			popd > /dev/null 2>&1
-		fi
-	fi
+	# Figure out whether we need to change directories first
+	CHDIR=$([[ "$(dirname ${SCRIPT})" == "${FLGHJACK_SCRIPT}" ]] && echo 0 || echo 1)
+	[[ ${CHDIR} -eq 0 ]] || pushd ${CACHE_DIR} > /dev/null 2>&1
+	create_flbin_dir
+	[[ ! -x ${SCRIPT} ]] || FORKLIFT=${SELF_DIR}/../../../forklift WAREHOUSE="${WAREHOUSE}" PALLET="${PALLET}" VERSION="${VERSION}" FLBIN_DIR=${FLBIN_DIR} ${SCRIPT}
+	[[ ${CHDIR} -eq 0 ]] || popd > /dev/null 2>&1
 }
 
 function install () {
