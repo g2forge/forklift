@@ -42,7 +42,7 @@ case ${COMMAND} in
 	exit 0
 	;;
 	uninstall)
-	${SELF_DIR}/.forklift/post-delete
+	FORKLIFT=${SELF} ${SELF_DIR}/.forklift/post-delete
 	exit 0
 	;;
 	upgrade)
