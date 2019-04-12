@@ -27,7 +27,7 @@ function create_flbin_dir () {
 		cat >${FLBIN_DIR}/README.md << EOF
 # Forklift Binaries
 
-This directory contains the main [forklift](https://github.com/g2forge/forklift) binaries, which are added to the path.
+This directory contains the main [forklift](https://github.com/${FL_WAREHOUSE}) binaries, which are added to the path.
 EOF
 	fi
 }

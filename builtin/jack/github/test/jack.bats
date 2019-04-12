@@ -1,7 +1,9 @@
-BATS_WAREHOUSE="sstephenson/bats"
-BATS_VERSION="v0.4.0"
-FL_WAREHOUSE="g2forge/forklift"
-FL_VERSION="pallet-test"
+PALLETTEST_WAREHOUSE="${FL_WAREHOUSE}"
+PALLETTEST_VERSION="pallet-test"
+
+SELF_RAW=$BASH_SOURCE
+SELF_DIR=$(cd $(dirname ${SELF_RAW}) && pwd -P)
+. ${SELF_DIR}/../../../common/config
 
 function jack () {
 	run ${BATS_TEST_DIRNAME}/../jack ${@}
@@ -29,14 +31,14 @@ function jack () {
 }
 
 @test "scripts" {
-	jack import com.github ${FL_WAREHOUSE} ${FL_VERSION}
+	jack import com.github ${PALLETTEST_WAREHOUSE} ${PALLETTEST_VERSION}
 	[ "$status" -eq 0 ]
 	
 	run ~/.forklift/bin/forklift-test
 	[ "$status" -eq 0 ]
 	[ "$output" = "Hello, World!" ]
 	
-	jack delete com.github ${FL_WAREHOUSE} ${FL_VERSION}
+	jack delete com.github ${PALLETTEST_WAREHOUSE} ${PALLETTEST_VERSION}
 	[ "$status" -eq 0 ]
 	[ ! -f ~/.forklift/bin/forklift-test ]
 }
