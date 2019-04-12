@@ -104,6 +104,12 @@ function import () {
 		BRANCH=$(git rev-parse --abbrev-ref HEAD)
 		if [ "${BRANCH}" != "${VERSION}" ]; then
 			echo -e "${CFMT_INFO}Switching to version ${VERSION}${CFMT_NORMAL}" >&2
+			set +e
+			if ! git show-ref | grep "/${VERSION}\$"; then
+				echo -e "${CFMT_ERROR}Version ${VERSION} could not be found!${CFMT_NORMAL}" >&2
+				exit 1
+			fi
+			set -e
 			REFSPEC=$(git show-ref | grep "/${VERSION}\$" | cut -f 2 -d ' ')
 			git checkout -b ${VERSION} ${REFSPEC} >&2
 		fi
