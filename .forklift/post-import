@@ -18,7 +18,10 @@ if [ -x ${FLBIN_DIR}/forklift ]; then
 	echo "Found existing forklift install, checking version"
 	VER_EXIST=$(${FLBIN_DIR}/forklift version)
 	VER_MINE=$(${INSTALL_DIR}/forklift version)
-	if ${INSTALL_DIR}/builtin/common/version isnewer ${VER_EXIST} ${VER_MINE}; then
+	if [ "${VER_EXIST}" == "development" ] && [ "${VER_MINE}" == "development" ]; then
+		echo "Installing a development 'upgrade'"
+		INSTALL_FLAG=1
+	elif ${INSTALL_DIR}/builtin/common/version isnewer ${VER_EXIST} ${VER_MINE}; then
 		echo "Found ${VER_EXIST}, will install ${VER_MINE} as an upgrade"
 		INSTALL_FLAG=1
 	else
