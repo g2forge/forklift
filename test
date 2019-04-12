@@ -28,9 +28,6 @@ elif [[ $# -gt 0 ]]; then
 	fail "No arguments allowed"
 fi
 
-BATS_WAREHOUSE="sstephenson/bats"
-BATS_VERSION="v0.4.0"
-
 TESTDIRECTORIES=$(find ./ -type d -name "test")
 echo "Found tests in:"
 for DIRECTORY in ${TESTDIRECTORIES}; do
