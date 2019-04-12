@@ -44,11 +44,24 @@ If you want to run a script from another version of forklift you can do so throu
 To run [bulldozer catalog](https://github.com/g2forge/bulldozer/blob/master/bd-build/src/main/java/com/g2forge/bulldozer/build/Catalog.java) on your project:
 
 ```
- ./forklift run org.maven com.g2forge.bulldozer:bd-build 0.0.2 catalog <PATH TO PROJECT>
+ forklift run org.maven com.g2forge.bulldozer:bd-build 0.0.2 catalog <PATH TO PROJECT>
 ```
 
 This examples shows the use of the `maven` warehouse which allows one to reference JARs (and any other maven artifacts) as pallets.
 For more information about running commands from maven pallets (artifacts), please read the [maven jack documentation](builtin/jack/maven/README.md).
+
+## Example 4
+
+To install one or more OS packages:
+
+```
+forklift run builtin common current install <PACKAGES>
+```
+
+This examples shows off one of the internal functions of forklift: the ability to install operating system level packages across operating systems.
+This is particularly useful on Cygwin where this is no native command-line package installer.
+
+You may be interested in the [fl-clicommon](https://github.com/g2forge/fl-clicommon) pallet which takes advantage of this to install commonly needed command line tools. 
 
 # Pallet Specifications
 
