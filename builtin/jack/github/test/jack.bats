@@ -1,9 +1,6 @@
+load ../../../common/config
 PALLETTEST_WAREHOUSE="${FL_WAREHOUSE}"
 PALLETTEST_VERSION="pallet-test"
-
-SELF_RAW=$BASH_SOURCE
-SELF_DIR=$(cd $(dirname ${SELF_RAW}) && pwd -P)
-. ${SELF_DIR}/../../../common/config
 
 function jack () {
 	run ${BATS_TEST_DIRNAME}/../jack ${@}

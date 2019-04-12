@@ -12,7 +12,7 @@ SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
 SELF=${SELF_DIR}/$(basename ${0})
 
 INSTALL_DIR=$(cd ${SELF_DIR}/.. && pwd -P)
-. ${INSTALL_DIR}/builtin/common/source
+. ${INSTALL_DIR}/builtin/common/source.bash
 
 if [ -x ${FLBIN_DIR}/forklift ]; then
 	echo "Found existing forklift install, checking version"

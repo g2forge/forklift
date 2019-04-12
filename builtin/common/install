@@ -12,7 +12,7 @@ function help () {
 SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
 SELF=${SELF_DIR}/$(basename ${0})
 
-. ${SELF_DIR}/source
+. ${SELF_DIR}/source.bash
 
 INSTALL="${SELF_DIR}/../../builtin/package/$(${SELF_DIR}/osinfo -d)/install"
 ${INSTALL} $@

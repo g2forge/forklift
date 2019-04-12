@@ -22,7 +22,7 @@ function help () {
 SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
 SELF=${SELF_DIR}/$(basename ${0})
 
-. ${SELF_DIR}/builtin/common/source
+. ${SELF_DIR}/builtin/common/source.bash
 
 args_min 1
 COMMAND="${1}"
