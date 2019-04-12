@@ -31,7 +31,14 @@ fi
 BATS_WAREHOUSE="sstephenson/bats"
 BATS_VERSION="v0.4.0"
 
-for DIRECTORY in $(find ./ -type d -name "test"); do
+TESTDIRECTORIES=$(find ./ -type d -name "test")
+echo "Found tests in:"
+for DIRECTORY in ${TESTDIRECTORIES}; do
+	echo "	${DIRECTORY}"
+done
+echo
+
+for DIRECTORY in ${TESTDIRECTORIES}; do
 	echo -e "Executing tests in ${CFMT_CODE}${DIRECTORY}${CFMT_NORMAL}"
 	./forklift run com.github ${BATS_WAREHOUSE} ${BATS_VERSION} bin/bats ${DIRECTORY}
 done 

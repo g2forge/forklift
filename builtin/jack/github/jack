@@ -163,10 +163,10 @@ case ${COMMAND} in
 	verify
 	echo -e "${CFMT_INFO}Deleting ${WAREHOUSE} ${PALLET} ${VERSION}${CFMT_NORMAL}" >&2
 	flscript ${CACHE_DIR}/${FLGHJACK_PREDELETE}
-	if [[ -x ${FLGHJACK_POSTDELETE} ]]; then
+	if [[ -x "${CACHE_DIR}/${FLGHJACK_POSTDELETE}" ]]; then
 		TEMPSCRIPT=$(mktemp)
 		chmod +x ${TEMPSCRIPT}
-		cat ${FLGHJACK_POSTDELETE} > ${TEMPSCRIPT}
+		cat "${CACHE_DIR}/${FLGHJACK_POSTDELETE}" > ${TEMPSCRIPT}
 		
 		rm -rf ${CACHE_DIR}
 		
@@ -176,6 +176,15 @@ case ${COMMAND} in
 		rm -rf ${CACHE_DIR}
 	fi
 	echo -e "${CFMT_SUCCESS}Delete successful${CFMT_NORMAL}!" >&2
+	
+	# Clean up empty parent directories
+	CHECKDIR=$(dirname ${CACHE_DIR})
+	while [[ "${CHECKDIR}" != "${JACKCACHE_ROOT}" ]]; do
+		set +e
+		rmdir ${CHECKDIR} >/dev/null 2>&1 || break
+		set -e
+		CHECKDIR=$(dirname ${CHECKDIR})
+	done
 	;;
 	*)
 	fail "Unknown command: ${COMMAND}"
