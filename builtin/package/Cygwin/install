@@ -37,14 +37,17 @@ if [ ${#PACKAGES_CYGWIN[@]} -ne 0 ]; then
 		curl https://cygwin.com/${EXECUTABLE_NAME} -o ${EXECUTABLE_FILE}
 		chmod +x ${EXECUTABLE_FILE}
 	fi
-	echo -e "${CFMT_INFO}Intalling ${PACKAGES_CYGWIN[@]} using cygwin installer ${CFMT_NORMAL}" >&2
+	PACKAGELIST=$(IFS=,; echo "${PACKAGES_CYGWIN[*]}")
+	echo -e "${CFMT_INFO}Intalling ${PACKAGELIST} using cygwin installer ${CFMT_NORMAL}" >&2
+	echo -e "${CFMT_INFO}Be prepared for a UAC password prompt.${CFMT_NORMAL}" >&2
+	echo -e "${CFMT_INFO}You may need to press <ENTER> in the powershell window once the installer completes!${CFMT_NORMAL}" >&2
 	sleep 2
 	
 	PS1_TEMPDIR=$(mktemp -d)
 	trap "{ rm -rf ${PS1_TEMPDIR}; }" EXIT
 	cat > ${PS1_TEMPDIR}/install.ps1 <<EOF
 \$ErrorActionPreference = "Stop"
-$(cygpath -w ${EXECUTABLE_FILE}) -q -W -P ${PACKAGES_CYGWIN[@]}
+$(cygpath -w ${EXECUTABLE_FILE}) -q -W -P ${PACKAGELIST}
 pause
 EOF
 	# Use powershell to run the installer
