@@ -1,2 +1,0 @@
-FLCACHE_ROOT=~/.forklift
-FLBIN_DIR=${FLCACHE_ROOT}/bin

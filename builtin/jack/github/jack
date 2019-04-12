@@ -18,7 +18,7 @@ function help () {
 SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
 SELF=${SELF_DIR}/$(basename ${0})
 
-. ${SELF_DIR}/../../common/source
+. ${SELF_DIR}/../../common/source.bash
 
 FLGHJACK_SCRIPT=.forklift
 FLGHJACK_POSTIMPORT=${FLGHJACK_SCRIPT}/post-import
@@ -28,17 +28,12 @@ FLGHJACK_PREDELETE=${FLGHJACK_SCRIPT}/pre-delete
 FLGHJACK_POSTDELETE=${FLGHJACK_SCRIPT}/post-delete
 function flscript () {
 	SCRIPT="${1}"
-	if [[ "$(dirname ${SCRIPT})" == "${FLGHJACK_SCRIPT}" ]]; then
-		if [[ -x ${SCRIPT} ]]; then
-			FORKLIFT=${SELF_DIR}/../../../forklift WAREHOUSE="${WAREHOUSE}" PALLET="${PALLET}" VERSION="${VERSION}" FLBIN_DIR=${FLBIN_DIR} ${SCRIPT}
-		fi
-	else
-		if [[ -x ${CACHE_DIR}/${SCRIPT} ]]; then
-			pushd ${CACHE_DIR} > /dev/null 2>&1
-			FORKLIFT=${SELF_DIR}/../../../forklift WAREHOUSE="${WAREHOUSE}" PALLET="${PALLET}" VERSION="${VERSION}" FLBIN_DIR=${FLBIN_DIR} ${SCRIPT}
-			popd > /dev/null 2>&1
-		fi
-	fi
+	# Figure out whether we need to change directories first
+	CHDIR=$([[ "$(dirname ${SCRIPT})" == "${FLGHJACK_SCRIPT}" ]] && echo 0 || echo 1)
+	[[ ${CHDIR} -eq 0 ]] || pushd ${CACHE_DIR} > /dev/null 2>&1
+	create_flbin_dir
+	[[ ! -x ${SCRIPT} ]] || FORKLIFT=${SELF_DIR}/../../../forklift WAREHOUSE="${WAREHOUSE}" PALLET="${PALLET}" VERSION="${VERSION}" FLBIN_DIR=${FLBIN_DIR} ${SCRIPT}
+	[[ ${CHDIR} -eq 0 ]] || popd > /dev/null 2>&1
 }
 
 function install () {
@@ -109,6 +104,12 @@ function import () {
 		BRANCH=$(git rev-parse --abbrev-ref HEAD)
 		if [ "${BRANCH}" != "${VERSION}" ]; then
 			echo -e "${CFMT_INFO}Switching to version ${VERSION}${CFMT_NORMAL}" >&2
+			set +e
+			if ! git show-ref | grep "/${VERSION}\$"; then
+				echo -e "${CFMT_ERROR}Version ${VERSION} could not be found!${CFMT_NORMAL}" >&2
+				exit 1
+			fi
+			set -e
 			REFSPEC=$(git show-ref | grep "/${VERSION}\$" | cut -f 2 -d ' ')
 			git checkout -b ${VERSION} ${REFSPEC} >&2
 		fi
@@ -168,10 +169,10 @@ case ${COMMAND} in
 	verify
 	echo -e "${CFMT_INFO}Deleting ${WAREHOUSE} ${PALLET} ${VERSION}${CFMT_NORMAL}" >&2
 	flscript ${CACHE_DIR}/${FLGHJACK_PREDELETE}
-	if [[ -x ${FLGHJACK_POSTDELETE} ]]; then
+	if [[ -x "${CACHE_DIR}/${FLGHJACK_POSTDELETE}" ]]; then
 		TEMPSCRIPT=$(mktemp)
 		chmod +x ${TEMPSCRIPT}
-		cat ${FLGHJACK_POSTDELETE} > ${TEMPSCRIPT}
+		cat "${CACHE_DIR}/${FLGHJACK_POSTDELETE}" > ${TEMPSCRIPT}
 		
 		rm -rf ${CACHE_DIR}
 		
@@ -181,6 +182,15 @@ case ${COMMAND} in
 		rm -rf ${CACHE_DIR}
 	fi
 	echo -e "${CFMT_SUCCESS}Delete successful${CFMT_NORMAL}!" >&2
+	
+	# Clean up empty parent directories
+	CHECKDIR=$(dirname ${CACHE_DIR})
+	while [[ "${CHECKDIR}" != "${JACKCACHE_ROOT}" ]]; do
+		set +e
+		rmdir ${CHECKDIR} >/dev/null 2>&1 || break
+		set -e
+		CHECKDIR=$(dirname ${CHECKDIR})
+	done
 	;;
 	*)
 	fail "Unknown command: ${COMMAND}"

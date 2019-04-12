@@ -2,11 +2,13 @@
 set -eu -o pipefail
 
 function help () {
-	echo "$(basename ${0}): Install forklift pallet manager"
+	echo "$(basename ${0}): Install forklift pallet manager, or a pallet"
 	echo
 	echo "Usage: $(basename ${0})"
 	echo -e "\tcommands:"
+	echo -e "\t\t--help: Display this command line help"
 	echo -e "\t\t--dev: Install forklift from this directory for testing forklift"
+	echo -e "\t\tfor any other set of arguments this script will install forklift and then run it with the specified command line arguments"
 	echo
 }
 
@@ -14,33 +16,29 @@ SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
 SELF=${SELF_DIR}/$(basename ${0})
 
 DEVINSTALL=0
-if [[ $# -eq 1 ]]; then
+if [[ $# -ge 1 ]]; then
 	COMMAND="${1}"
 	case ${COMMAND} in
 		-h|--help|help)
 		help
 		exit 0
 		;;
-		--dev|dev|--development|development)
-		if [ -f ${SELF_DIR}/forklift ]; then
+		-d|--dev|dev|--development|development)
+		if [ -x ${SELF_DIR}/forklift ]; then
 			DEVINSTALL=1
+			shift
 		else
-			fail "Cannot do a development install without a development copy of forklift!"
+			echo "Cannot do a development install without a development copy of forklift!"
+			exit 1
 		fi
 		;;
-		*)
-		echo "Unrecognized command ${COMMAND}"
-		exit 1
-		;;
 	esac
-elif [[ $# -gt 0 ]]; then
-	echo "No arguments allowed"
-	exit 1
 fi
 
 if [ ${DEVINSTALL} -ne 0 ]; then
 	echo "Performing a development install of forklift from current directory"
-	${SELF_DIR}/forklift run builtin install current .forklift/post-import
+	FORKLIFT=${SELF_DIR}/forklift
+	${FORKLIFT} run builtin ../ current .forklift/post-import
 else
 	TEMPDIR=$(mktemp -d)
 	pushd ${TEMPDIR} 2>&1 >/dev/null
@@ -57,16 +55,17 @@ else
 		
 		if which forklift > /dev/null 2>&1; then
 			# Forklift is already installed, so we can use that
-			INSTALLED_VERSION=$(forklift version)
+			FORKLIFT=forklift
+			INSTALLED_VERSION=$(${FORKLIFT} version)
 			echo "Found previous install of ${INSTALLED_VERSION}"
 			if [ "${INSTALLED_VERSION}" == "${RELEASE_TAG_NAME}" ]; then
 				echo "Already up to date, skipping download and install"
 			else
 				echo "Installing forklift ${RELEASE_TAG_NAME}"
-				forklift import com.github ${RELEASE_ORG}/${RELEASE_REPO} ${RELEASE_TAG_NAME}
+				${FORKLIFT} import com.github ${RELEASE_ORG}/${RELEASE_REPO} ${RELEASE_TAG_NAME}
 				
 				echo "Removing forklift ${INSTALLED_VERSION}"
-				forklift delete com.github ${RELEASE_ORG}/${RELEASE_REPO} ${INSTALLED_VERSION}
+				${FORKLIFT} delete com.github ${RELEASE_ORG}/${RELEASE_REPO} ${INSTALLED_VERSION}
 			fi
 		else
 			# Forklift wasn't already installed, so use curl to download a release from github for temporary usage
@@ -78,7 +77,13 @@ else
 			echo "Running install for ${RELEASE_TAG_NAME}"
 			# Note that this will download, import and then run the setup script
 			${RELEASE_DIR}/forklift import com.github ${RELEASE_ORG}/${RELEASE_REPO} ${RELEASE_TAG_NAME}
+			FORKLIFT="$(${RELEASE_DIR}/forklift path com.github ${RELEASE_ORG}/${RELEASE_REPO} ${RELEASE_TAG_NAME})/forklift"
 		fi
 	popd 2>&1 >/dev/null
 	rm -rf ${TEMPDIR}
+fi
+
+if [[ $# -gt 0 ]]; then
+	echo "Running forklift $@"
+	${FORKLIFT} $@
 fi

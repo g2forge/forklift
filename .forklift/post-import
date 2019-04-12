@@ -12,13 +12,16 @@ SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
 SELF=${SELF_DIR}/$(basename ${0})
 
 INSTALL_DIR=$(cd ${SELF_DIR}/.. && pwd -P)
-. ${INSTALL_DIR}/builtin/common/source
+. ${INSTALL_DIR}/builtin/common/source.bash
 
 if [ -x ${FLBIN_DIR}/forklift ]; then
 	echo "Found existing forklift install, checking version"
 	VER_EXIST=$(${FLBIN_DIR}/forklift version)
 	VER_MINE=$(${INSTALL_DIR}/forklift version)
-	if ${INSTALL_DIR}/builtin/common/version isnewer ${VER_EXIST} ${VER_MINE}; then
+	if [ "${VER_EXIST}" == "development" ] && [ "${VER_MINE}" == "development" ]; then
+		echo "Installing a development 'upgrade'"
+		INSTALL_FLAG=1
+	elif ${INSTALL_DIR}/builtin/common/version isnewer ${VER_EXIST} ${VER_MINE}; then
 		echo "Found ${VER_EXIST}, will install ${VER_MINE} as an upgrade"
 		INSTALL_FLAG=1
 	else
@@ -31,13 +34,7 @@ fi
 
 if [ "${INSTALL_FLAG}" -ne 0 ]; then
 	echo "Installing forklift"
-	mkdir -p ${FLBIN_DIR}
-	cat >${FLBIN_DIR}/README.md << EOF
-# Forklift Binaries
-
-This directory contains the main [forklift](https://github.com/g2forge/forklift) binaries, which are added to the path.
-The files in this directory were generated for the installation in \`${INSTALL_DIR}\`.
-EOF
+	create_flbin_dir
 	cat > ${FLBIN_DIR}/forklift <<EOF
 #!/bin/bash
 ${INSTALL_DIR}/forklift \$@

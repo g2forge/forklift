@@ -11,7 +11,7 @@ function help () {
 SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
 SELF=${SELF_DIR}/$(basename ${0})
 
-. ${SELF_DIR}/builtin/common/source
+. ${SELF_DIR}/builtin/common/source.bash
 
 if [[ $# -eq 1 ]]; then
 	COMMAND="${1}"
@@ -28,10 +28,14 @@ elif [[ $# -gt 0 ]]; then
 	fail "No arguments allowed"
 fi
 
-BATS_WAREHOUSE="sstephenson/bats"
-BATS_VERSION="v0.4.0"
+TESTDIRECTORIES=$(find ./ -type d -name "test")
+echo "Found tests in:"
+for DIRECTORY in ${TESTDIRECTORIES}; do
+	echo "	${DIRECTORY}"
+done
+echo
 
-for DIRECTORY in $(find ./ -type d -name "test"); do
+for DIRECTORY in ${TESTDIRECTORIES}; do
 	echo -e "Executing tests in ${CFMT_CODE}${DIRECTORY}${CFMT_NORMAL}"
 	./forklift run com.github ${BATS_WAREHOUSE} ${BATS_VERSION} bin/bats ${DIRECTORY}
 done 
