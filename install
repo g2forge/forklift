@@ -76,8 +76,8 @@ else
 			
 			echo "Running install for ${RELEASE_TAG_NAME}"
 			# Note that this will download, import and then run the setup script
-			FORKLIFT=${RELEASE_DIR}/forklift
-			${FORKLIFT} import com.github ${RELEASE_ORG}/${RELEASE_REPO} ${RELEASE_TAG_NAME}
+			${RELEASE_DIR}/forklift import com.github ${RELEASE_ORG}/${RELEASE_REPO} ${RELEASE_TAG_NAME}
+			FORKLIFT="$(${RELEASE_DIR}/forklift path com.github ${RELEASE_ORG}/${RELEASE_REPO} ${RELEASE_TAG_NAME})/forklift"
 		fi
 	popd 2>&1 >/dev/null
 	rm -rf ${TEMPDIR}
