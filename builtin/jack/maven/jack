@@ -19,7 +19,7 @@ function help () {
 SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
 SELF=${SELF_DIR}/$(basename ${0})
 
-. ${SELF_DIR}/../../common/source
+. ${SELF_DIR}/../../common/source.bash
 
 FLMVNJACK_SCRIPT=.forklift
 FLMVNJACK_POSTIMPORT=${FLMVNJACK_SCRIPT}/post-import

@@ -15,7 +15,7 @@ function help () {
 SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
 SELF=${SELF_DIR}/$(basename ${0})
 
-. ${SELF_DIR}/source
+. ${SELF_DIR}/source.bash
 
 while [[ $# -gt 0 ]]; do
 	KEY="${1}"
