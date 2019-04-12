@@ -38,4 +38,5 @@ function jack () {
   
   jack delete com.github ${FL_WAREHOUSE} ${FL_VERSION}
   [ "$status" -eq 0 ]
+  [ ! -f ~/.forklift/bin/forklift-test ]
 }
