@@ -28,8 +28,9 @@ function jack () {
 }
 
 @test "scripts" {
-	jack import com.github ${PALLETTEST_WAREHOUSE} ${PALLETTEST_VERSION}
+	run echo $(${BATS_TEST_DIRNAME}/../jack path com.github ${PALLETTEST_WAREHOUSE} ${PALLETTEST_VERSION} 2>/dev/null)
 	[ "$status" -eq 0 ]
+	[ "$(basename $output)" = "${PALLETTEST_VERSION}" ]
 	
 	run ~/.forklift/bin/forklift-test
 	[ "$status" -eq 0 ]
