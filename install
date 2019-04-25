@@ -107,6 +107,7 @@ else
 	popd 2>&1 >/dev/null
 	rm -rf ${TEMPDIR}
 	trap '' EXIT
+	echo "Successfully installed forklift!"
 fi
 
 if [[ $# -gt 0 ]]; then
