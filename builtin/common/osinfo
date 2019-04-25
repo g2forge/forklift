@@ -82,7 +82,7 @@ while [[ $# -gt 0 ]]; do
 		-a|--arch)
 		DISTRO=$($0 -d)
 		case ${DISTRO} in
-			Cygwin|OSX)
+			Cygwin|OSX|Debian)
 			uname -m
 			;;
 			*)

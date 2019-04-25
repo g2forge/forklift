@@ -38,7 +38,7 @@ if [ ${#PACKAGES_CYGWIN[@]} -ne 0 ]; then
 		chmod +x ${EXECUTABLE_FILE}
 	fi
 	PACKAGELIST=$(IFS=,; echo "${PACKAGES_CYGWIN[*]}")
-	echo -e "${CFMT_INFO}Intalling ${PACKAGELIST} using cygwin installer ${CFMT_NORMAL}" >&2
+	echo -e "${CFMT_INFO}Installing ${PACKAGELIST} using cygwin installer ${CFMT_NORMAL}" >&2
 	echo -e "${CFMT_INFO}Be prepared for a UAC password prompt.${CFMT_NORMAL}" >&2
 	echo -e "${CFMT_INFO}You may need to press <ENTER> in the powershell window once the installer completes!${CFMT_NORMAL}" >&2
 	sleep 2
@@ -54,4 +54,4 @@ EOF
 	powershell -NoProfile -ExecutionPolicy Bypass -Command "\$p = Start-Process powershell \"-Command $(cygpath -w ${PS1_TEMPDIR}/install.ps1)\" -Verb runAs -PassThru -Wait; Exit \$p.ExitCode"
 fi
 
-echo -e "${CFMT_SUCCESS}Intalled ${@}${CFMT_NORMAL}" >&2
+echo -e "${CFMT_SUCCESS}Installed ${@}${CFMT_NORMAL}" >&2
