@@ -42,11 +42,11 @@ while [[ $# -gt 0 ]]; do
 				Linux)
 					if [ -f /etc/os-release ]; then
 						NAME=$(bash -c '. /etc/os-release; echo ${NAME}')
-						if [ "${NAME}" == "Amazon Linux" ]; then
-							echo "AmazonLinux"
-						else
-							echo "Unknown"
-						fi
+						case "${NAME}" in
+							"Amazon Linux") echo "AmazonLinux";;
+							"Red Hat Enterprise Linux Server") echo "RHEL";;
+							*) echo "Unknown";;
+						esac
 					else
 						echo "Unknown"
 					fi
@@ -62,8 +62,11 @@ while [[ $# -gt 0 ]]; do
 			OSX)
 			sw_vers | grep "ProductVersion" | sed -e 's/.*:[	 ]*//'
 			;;
-			RHEL|Ubuntu)
+			Debian|Ubuntu)
 			lsb_release -r | sed -e 's/.*:\s*//'
+			;;
+			RHEL)
+			bash -c '. /etc/os-release; echo ${VERSION_ID}'
 			;;
 			Cygwin)
 			uname -r | sed -e 's/\([^(]*\)(.*/\1/'
