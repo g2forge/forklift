@@ -43,7 +43,7 @@ else
 	TEMPDIR=$(mktemp -d)
 	STATUS_STEP=""
 	STATUS_OUTPUT=""
-	trap 'echo "Failed to install forklift: ${STATUS_STEP}"; echo "${STATUS_OUTPUT}"; rm -rf ${TEMPDIR}' EXIT
+	trap 'rm -rf ${TEMPDIR}; echo "Failed to install forklift: ${STATUS_STEP}"; echo "${STATUS_OUTPUT}" >&2;' EXIT
 	pushd ${TEMPDIR} 2>&1 >/dev/null
 		set +u
 		if [ -z "${RELEASE_URL}" ]; then
@@ -109,8 +109,8 @@ else
 			STATUS_STEP="Unpacking tarball"
 			tar -xf ${RELEASE_TGZ}
 			STATUS_STEP="Parsing tarball contents"
-			STATUS_OUTPUT=$(find ./ -maxdepth 1 -mindepth 1 -type d)
-			RELEASE_DIR=$(find ./ -maxdepth 1 -mindepth 1 -type d | grep -F "./${RELEASE_DIRPREFIX}-" | head -n 1)
+			STATUS_OUTPUT=$(find . -maxdepth 1 -mindepth 1 -type d)
+			RELEASE_DIR=$(find . -maxdepth 1 -mindepth 1 -type d | grep -F "./${RELEASE_DIRPREFIX}-" | head -n 1)
 			
 			STATUS_STEP="Running install for ${RELEASE_TAG_NAME}"
 			echo "${STATUS_STEP}"
