@@ -41,7 +41,9 @@ if [ ${DEVINSTALL} -ne 0 ]; then
 	${FORKLIFT} run builtin ../ current .forklift/post-import
 else
 	TEMPDIR=$(mktemp -d)
-	trap "echo 'Failed to install forklift'; rm -rf ${TEMPDIR}" EXIT
+	STATUS_STEP=""
+	STATUS_OUTPUT=""
+	trap 'echo "Failed to install forklift during ${STATUS_STEP}"; echo "${STATUS_OUTPUT}"; rm -rf ${TEMPDIR}' EXIT
 	pushd ${TEMPDIR} 2>&1 >/dev/null
 		set +u
 		if [ -z "${RELEASE_URL}" ]; then
@@ -54,8 +56,10 @@ else
 			RELEASE_REPO="forklift"
 			RELEASE_DIRPREFIX="${RELEASE_ORG}-${RELEASE_REPO}"
 			
+			STATUS_STEP="Downloading GitHub release metadata"
 			RELEASE_JSON="release.json"
 			curl https://api.github.com/repos/${RELEASE_ORG}/${RELEASE_REPO}/releases/latest 2> /dev/null > ${RELEASE_JSON}
+			STATUS_STEP="Parsing GitHub release metadata"
 			RELEASE_TAG_NAME=$(grep -F "tag_name" ${RELEASE_JSON} | sed -e 's/[^"]*"tag_name":[^"]*"\([^"]*\)",/\1/')
 			RELEASE_TARBALL_URL=$(grep -F "tarball_url" ${RELEASE_JSON} | sed -e 's/[^"]*"tarball_url":[^"]*"\([^"]*\)",/\1/')
 		else
@@ -65,9 +69,11 @@ else
 			echo "Installing the version from ${RELEASE_URL}"
 			# RELEASE_URL: The zip or tarball download URL for a specific branch
 			if [ ${RELEASE_URL: -4} == ".zip" ]; then
+				STATUS_STEP="Converting zip to tar.gz URL"
 				RELEASE_URL="$(dirname ${RELEASE_URL})/$(basename ${RELEASE_URL} .zip).tar.gz"
 			fi
 			
+			STATUS_STEP="Parsing release URL"
 			RELEASE_TAG_NAME=$(basename ${RELEASE_URL} .tar.gz)
 			RELEASE_TARBALL_URL="${RELEASE_URL}"
 			
@@ -80,28 +86,36 @@ else
 		if which forklift > /dev/null 2>&1; then
 			# Forklift is already installed, so we can use that
 			FORKLIFT=forklift
+			STATUS_STEP="Checking installed forklift version"
 			INSTALLED_VERSION=$(${FORKLIFT} version)
 			echo "Found previous install of ${INSTALLED_VERSION}"
 			if [ "${INSTALLED_VERSION}" == "${RELEASE_TAG_NAME}" ] && [ "${INSTALLED_VERSION}" == "development" ]; then
 				echo "Already up to date, skipping download and install"
 			else
-				echo "Installing forklift ${RELEASE_TAG_NAME}"
+				STATUS_STEP="Installing forklift ${RELEASE_TAG_NAME}"
+				echo "${STATUS_STEP}"
 				${FORKLIFT} import com.github ${RELEASE_ORG}/${RELEASE_REPO} ${RELEASE_TAG_NAME}
 				
-				echo "Removing forklift ${INSTALLED_VERSION}"
+				STATUS_STEP="Removing forklift ${INSTALLED_VERSION}"
+				echo "${STATUS_STEP}"
 				${FORKLIFT} delete com.github ${RELEASE_ORG}/${RELEASE_REPO} ${INSTALLED_VERSION}
 			fi
 		else
 			# Forklift wasn't already installed, so use curl to download a release from github for temporary usage
-			echo "Downloading forklift ${RELEASE_TAG_NAME}"
+			STATUS_STEP="Downloading forklift ${RELEASE_TAG_NAME}"
+			echo "${STATUS_STEP}"
 			RELEASE_TGZ="release.tar.gz"
 			curl -L ${RELEASE_TARBALL_URL} > ${RELEASE_TGZ}
+			STATUS_STEP="Unpacking tarball"
 			tar -xf ${RELEASE_TGZ}
+			STATUS_STEP="Parsing tarball contents"
 			RELEASE_DIR=$(find ./ -maxdepth 1 -mindepth 1 -type d | grep -F "./${RELEASE_DIRPREFIX}-" | head -n 1)
 			
-			echo "Running install for ${RELEASE_TAG_NAME}"
+			STATUS_STEP="Running install for ${RELEASE_TAG_NAME}"
+			echo "${STATUS_STEP}"
 			# Note that this will download, import and then run the setup script
 			${RELEASE_DIR}/forklift import com.github ${RELEASE_ORG}/${RELEASE_REPO} ${RELEASE_TAG_NAME}
+			STATUS_STEP="Getting path to new install"
 			FORKLIFT="$(${RELEASE_DIR}/forklift path com.github ${RELEASE_ORG}/${RELEASE_REPO} ${RELEASE_TAG_NAME})/forklift"
 		fi
 	popd 2>&1 >/dev/null
