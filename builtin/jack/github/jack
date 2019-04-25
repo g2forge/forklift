@@ -77,7 +77,7 @@ EOF
 fi
 
 function warehouse2host () {
-	echo "${WAREHOUSE}" | sed -e 's/\./\n/g' | tac | tr -s '\n' '.' | sed -e 's/.$/\n/'
+	echo "${WAREHOUSE}" | tr '.' '\n' | awk '{a[i++]=$0} END {for (j=i-1; j>=0;) print a[j--] }' | tr -s '\n' '.' | sed -e "s/.\$//"
 }
 function verify () {
 	if [ "${WAREHOUSE}" != "com.github" ]; then
