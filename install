@@ -68,6 +68,10 @@ else
 			
 			RELEASE_TAG_NAME=$(basename ${RELEASE_URL} .tar.gz)
 			RELEASE_TARBALL_URL="${RELEASE_URL}"
+			
+			STRIPPED=$(dirname $(dirname ${RELEASE_URL}))
+			RELEASE_ORG=$(basename $(dirname ${STRIPPED}))
+			RELEASE_REPO=$(basename ${STRIPPED})
 		fi
 		
 		
