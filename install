@@ -41,6 +41,7 @@ if [ ${DEVINSTALL} -ne 0 ]; then
 	${FORKLIFT} run builtin ../ current .forklift/post-import
 else
 	TEMPDIR=$(mktemp -d)
+	trap "echo 'Failed to install forklift'; rm -rf ${TEMPDIR}" EXIT
 	pushd ${TEMPDIR} 2>&1 >/dev/null
 		set +u
 		if [ -z "${RELEASE_URL}" ]; then
@@ -51,6 +52,7 @@ else
 			
 			RELEASE_ORG="g2forge"
 			RELEASE_REPO="forklift"
+			RELEASE_DIRPREFIX="${RELEASE_ORG}-${RELEASE_REPO}"
 			
 			RELEASE_JSON="release.json"
 			curl https://api.github.com/repos/${RELEASE_ORG}/${RELEASE_REPO}/releases/latest 2> /dev/null > ${RELEASE_JSON}
@@ -72,16 +74,15 @@ else
 			STRIPPED=$(dirname $(dirname ${RELEASE_URL}))
 			RELEASE_ORG=$(basename $(dirname ${STRIPPED}))
 			RELEASE_REPO=$(basename ${STRIPPED})
+			RELEASE_DIRPREFIX="${RELEASE_REPO}"
 		fi
-		
-		
 		
 		if which forklift > /dev/null 2>&1; then
 			# Forklift is already installed, so we can use that
 			FORKLIFT=forklift
 			INSTALLED_VERSION=$(${FORKLIFT} version)
 			echo "Found previous install of ${INSTALLED_VERSION}"
-			if [ "${INSTALLED_VERSION}" == "${RELEASE_TAG_NAME}" ]; then
+			if [ "${INSTALLED_VERSION}" == "${RELEASE_TAG_NAME}" ] && [ "${INSTALLED_VERSION}" == "development" ]; then
 				echo "Already up to date, skipping download and install"
 			else
 				echo "Installing forklift ${RELEASE_TAG_NAME}"
@@ -96,7 +97,7 @@ else
 			RELEASE_TGZ="release.tar.gz"
 			curl -L ${RELEASE_TARBALL_URL} > ${RELEASE_TGZ}
 			tar -xf ${RELEASE_TGZ}
-			RELEASE_DIR=$(find ./ -maxdepth 1 -mindepth 1 -type d | grep -F "${RELEASE_ORG}-${RELEASE_REPO}-" | head -n 1)
+			RELEASE_DIR=$(find ./ -maxdepth 1 -mindepth 1 -type d | grep -F "./${RELEASE_DIRPREFIX}-" | head -n 1)
 			
 			echo "Running install for ${RELEASE_TAG_NAME}"
 			# Note that this will download, import and then run the setup script
@@ -105,6 +106,7 @@ else
 		fi
 	popd 2>&1 >/dev/null
 	rm -rf ${TEMPDIR}
+	trap '' EXIT
 fi
 
 if [[ $# -gt 0 ]]; then
