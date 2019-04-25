@@ -6,7 +6,7 @@ function help () {
 	echo
 	echo "Usage: $(basename ${0}) [options]"
 	echo -e "\toptions:"
-	echo -e "\t\t-d|--distro:  Get the distro (RHEL, OSX, Ubuntu, Cygwin, AmazonLinux)"
+	echo -e "\t\t-d|--distro:  Get the distro (RHEL, OSX, Ubuntu, Cygwin, AmazonLinux, Debian)"
 	echo -e "\t\t-v|--version: Get the version of the distribution"
 	echo -e "\t\t-a|--arch:    Get the architecture"
 	echo
