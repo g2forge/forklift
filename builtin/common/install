@@ -14,5 +14,7 @@ SELF=${SELF_DIR}/$(basename ${0})
 
 . ${SELF_DIR}/source.bash
 
+trap 'echo "Failed to install OS packages: $@" >&2' EXIT
 INSTALL="${SELF_DIR}/../../builtin/package/$(${SELF_DIR}/osinfo -d)/install"
 ${INSTALL} $@
+trap '' EXIT

@@ -6,7 +6,7 @@ function help () {
 	echo
 	echo "Usage: $(basename ${0}) [options]"
 	echo -e "\toptions:"
-	echo -e "\t\t-d|--distro:  Get the distro (RHEL, OSX, Ubuntu, Cygwin)"
+	echo -e "\t\t-d|--distro:  Get the distro (RHEL, OSX, Ubuntu, Cygwin, AmazonLinux, Debian)"
 	echo -e "\t\t-v|--version: Get the version of the distribution"
 	echo -e "\t\t-a|--arch:    Get the architecture"
 	echo
@@ -39,6 +39,18 @@ while [[ $# -gt 0 ]]; do
 		else
 			UNAMES="$(uname -s)"
 			case "${UNAMES}" in
+				Linux)
+					if [ -f /etc/os-release ]; then
+						NAME=$(bash -c '. /etc/os-release; echo ${NAME}')
+						case "${NAME}" in
+							"Amazon Linux") echo "AmazonLinux";;
+							"Red Hat Enterprise Linux Server") echo "RHEL";;
+							*) echo "Unknown";;
+						esac
+					else
+						echo "Unknown"
+					fi
+					;;
 				CYGWIN*) echo "Cygwin";;
 				*)       echo "Unknown";;
 			esac
@@ -50,11 +62,17 @@ while [[ $# -gt 0 ]]; do
 			OSX)
 			sw_vers | grep "ProductVersion" | sed -e 's/.*:[	 ]*//'
 			;;
-			RHEL|Ubuntu)
+			Debian|Ubuntu)
 			lsb_release -r | sed -e 's/.*:\s*//'
+			;;
+			RHEL)
+			bash -c '. /etc/os-release; echo ${VERSION_ID}'
 			;;
 			Cygwin)
 			uname -r | sed -e 's/\([^(]*\)(.*/\1/'
+			;;
+			AmazonLinux)
+			uname -r | sed -e 's/-.*//'
 			;;
 			*)
 			echo "Unknown"
@@ -64,7 +82,7 @@ while [[ $# -gt 0 ]]; do
 		-a|--arch)
 		DISTRO=$($0 -d)
 		case ${DISTRO} in
-			Cygwin|OSX)
+			Cygwin|OSX|Debian)
 			uname -m
 			;;
 			*)
