@@ -5,6 +5,7 @@ function help () {
 	echo "$(basename ${0}): Run the specified command, or print it's cached results"
 	echo
 	echo "Usage: $(basename ${0}) <command...>"
+	echo "\tYou may override the cache root directory by specifying the CACHE_ROOT environment variable"
 	echo
 }
 
