@@ -50,16 +50,16 @@ function install_any () {
 	COMMAND=${1}
 	PACKAGE=${2}
 	if ! which ${COMMAND} > /dev/null 2>&1; then
-		${SELF_DIR}/../../common/install ${PACKAGE}
+		${COMMON_DIR}/install ${PACKAGE}
 	fi
 }
 function install_native () {
 	COMMAND=${1}
 	PACKAGE=${2}
 	if ! which ${COMMAND} > /dev/null 2>&1; then
-		${SELF_DIR}/../../common/install ${PACKAGE}
+		${COMMON_DIR}/install ${PACKAGE}
 	elif [[ $(which ${COMMAND}) = *"/cygdrive/"* ]]; then
-		${SELF_DIR}/../../common/install ${PACKAGE}
+		${COMMON_DIR}/install ${PACKAGE}
 	fi
 }
 

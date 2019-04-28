@@ -29,7 +29,7 @@ done
 
 # Any non-special packages should be installed by the standard cygwin installer
 if [ ${#PACKAGES_CYGWIN[@]} -ne 0 ]; then
-	EXECUTABLE_NAME="setup-$(${SELF_DIR}/../../common/osinfo -a).exe"
+	EXECUTABLE_NAME="setup-$(${COMMON_DIR}/osinfo -a).exe"
 	EXECUTABLE_FILE="${SELF_DIR}/${EXECUTABLE_NAME}"
 	# Download the cygwin installer if it's not already cached (TODO: Create a warehouse for this to version it better, they must have a proper download site with versions somewhere I can use to allow pallet updates to take this over)
 	if [ ! -f ${EXECUTABLE_FILE} ]; then
