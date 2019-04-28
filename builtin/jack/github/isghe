@@ -1,0 +1,33 @@
+#!/bin/bash
+set -eu -o pipefail
+
+function help () {
+	echo "$(basename ${0}): Test if a host is a GHE server"
+	echo
+	echo "Usage: $(basename ${0}) <host>"
+	echo
+}
+
+SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
+SELF=${SELF_DIR}/$(basename ${0})
+
+. ${SELF_DIR}/../../common/source.bash
+
+args_eq 1
+GHHOST="${1}"
+case ${GHHOST} in
+	-h|--help|help)
+	help
+	exit 0
+	;;
+esac
+
+echo -e "${CFMT_INFO}Checking if ${GHHOST} is a GitHub Enterprise server${CFMT_NORMAL}" >&2
+if ! (curl --connect-timeout 1 -is "https://${GHHOST}/api/v3" 2> /dev/null | grep -qe '^X-GitHub-'); then
+	if ! (curl --connect-timeout 1 -is "http://${GHHOST}/api/v3" 2> /dev/null | grep -qe '^X-GitHub-'); then
+		echo -e "${CFMT_ERROR}${GHHOST} is *NOT* a GitHub Enterprise server${CFMT_NORMAL}" >&2
+		exit 1
+	fi
+fi
+echo -e "${CFMT_INFO}${GHHOST} *IS* a GitHub Enterprise server${CFMT_NORMAL}" >&2
+exit 0

@@ -16,6 +16,11 @@ function jack () {
 	[ "$status" -eq 0 ]
 }
 
+@test "testBadGHE" {
+	jack test com.example pallet version
+	[ "$status" -eq 1 ]
+}
+
 @test "path" {
 	jack path com.github ${BATS_WAREHOUSE} ${BATS_VERSION}
 	[ "$status" -eq 0 ]
