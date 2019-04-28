@@ -1,0 +1,41 @@
+#!/bin/bash
+set -eu -o pipefail
+
+function help () {
+	echo "$(basename ${0}): Get the URL prefix for a specified host"
+	echo
+	echo "Usage: $(basename ${0}) <host>"
+	echo
+}
+
+SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
+SELF=${SELF_DIR}/$(basename ${0})
+
+. ${SELF_DIR}/../../common/source.bash
+
+args_eq 1
+GHHOST="${1}"
+case ${GHHOST} in
+	-h|--help|help)
+	help
+	exit 0
+	;;
+esac
+
+set +e
+SSHTESTOUTPUT=$(ssh -oBatchMode=yes -T git@${GHHOST} 2>&1)
+set -e
+if echo ${SSHTESTOUTPUT} | grep -qF "You've successfully authenticated"; then
+	echo "git@${GHHOST}:"
+else
+	if [ "${GHHOST}" == "github.com" ]; then
+		SCHEME="https"
+	else
+		if (curl --connect-timeout 1 -is "https://${GHHOST}/api/v3" 2> /dev/null | grep -qe '^X-GitHub-'); then
+			SCHEME="https"
+		else
+			SCHEME="http"
+		fi
+	fi
+	echo "${SCHEME}://${GHHOST}/"
+fi

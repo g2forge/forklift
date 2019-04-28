@@ -92,11 +92,16 @@ function import () {
 		verify
 		install git git
 		
+		echo -e "${CFMT_INFO}Checking protocols for ${WAREHOUSE}${CFMT_NORMAL}" >&2
+		GHHOST=$(warehouse2host)
+		REPOURL=$(${SELF_DIR}/repourl ${GHHOST})
+		
 		echo -e "${CFMT_INFO}Importing ${WAREHOUSE} ${PALLET} ${VERSION}${CFMT_NORMAL}" >&2
 		PARENT_DIR=$(dirname ${CACHE_DIR})
 		mkdir -p ${PARENT_DIR}
 		pushd ${PARENT_DIR} > /dev/null 2>&1
-		git clone -- git@$(warehouse2host):${PALLET}.git $(basename ${CACHE_DIR}) >&2
+		git clone -- "${REPOURL}${PALLET}.git" $(basename ${CACHE_DIR}) >&2
+		
 		cd ${CACHE_DIR}
 		BRANCH=$(git rev-parse --abbrev-ref HEAD)
 		if [ "${BRANCH}" != "${VERSION}" ]; then
