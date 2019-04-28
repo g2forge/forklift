@@ -40,9 +40,9 @@ function flscript () {
 	if [ "${RESULT}" -eq "0" ]; then
 		create_flbin_dir
 		dos2unix ${FILE} > /dev/null 2>&1
-		chmod +x ${FILE}
-		FORKLIFT=${SELF_DIR}/../../../forklift WAREHOUSE="${WAREHOUSE}" PALLET="${PALLET}" VERSION="${VERSION}" FLBIN_DIR=${FLBIN_DIR} ${FILE}
-		rm -rf ${FILE}
+		chmod +x ${FILE} > /dev/null 2>&1
+		FORKLIFT=${SELF_DIR}/../../../forklift WAREHOUSE="${WAREHOUSE}" PALLET="${PALLET}" VERSION="${VERSION}" FLBIN_DIR=${FLBIN_DIR} ${FILE} >&2
+		rm -rf ${FILE} > /dev/null 2>&1
 	fi
 }
 
@@ -94,7 +94,7 @@ function import () {
 	install_any mvn maven
 	path
 	if [ ! -e ${MVNPATH} ]; then
-		mvn dependency:get "-DgroupId=${MVNGROUP}" "-DartifactId=${MVNARTIFACT}" "-Dversion=${MVNVERSION}" 1>&2
+		mvn dependency:get "-DgroupId=${MVNGROUP}" "-DartifactId=${MVNARTIFACT}" "-Dversion=${MVNVERSION}" >&2
 		flscript ${FLMVNJACK_POSTIMPORT}
 	fi
 }

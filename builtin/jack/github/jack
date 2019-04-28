@@ -32,7 +32,7 @@ function flscript () {
 	CHDIR=$([[ "$(dirname ${SCRIPT})" == "${FLGHJACK_SCRIPT}" ]] && echo 0 || echo 1)
 	[[ ${CHDIR} -eq 0 ]] || pushd ${CACHE_DIR} > /dev/null 2>&1
 	create_flbin_dir
-	[[ ! -x ${SCRIPT} ]] || FORKLIFT=${SELF_DIR}/../../../forklift WAREHOUSE="${WAREHOUSE}" PALLET="${PALLET}" VERSION="${VERSION}" FLBIN_DIR=${FLBIN_DIR} ${SCRIPT}
+	[[ ! -x ${SCRIPT} ]] || FORKLIFT=${SELF_DIR}/../../../forklift WAREHOUSE="${WAREHOUSE}" PALLET="${PALLET}" VERSION="${VERSION}" FLBIN_DIR=${FLBIN_DIR} ${SCRIPT} >&2
 	[[ ${CHDIR} -eq 0 ]] || popd > /dev/null 2>&1
 }
 
@@ -77,7 +77,7 @@ EOF
 fi
 
 function warehouse2host () {
-	echo "${WAREHOUSE}" | sed -e 's/\./\n/g' | tac | tr -s '\n' '.' | sed -e 's/.$/\n/'
+	echo "${WAREHOUSE}" | tr '.' '\n' | awk '{a[i++]=$0} END {for (j=i-1; j>=0;) print a[j--] }' | tr -s '\n' '.' | sed -e "s/.\$//"
 }
 function verify () {
 	if [ "${WAREHOUSE}" != "com.github" ]; then
@@ -107,7 +107,7 @@ function import () {
 		if [ "${BRANCH}" != "${VERSION}" ]; then
 			echo -e "${CFMT_INFO}Switching to version ${VERSION}${CFMT_NORMAL}" >&2
 			set +e
-			if ! git show-ref | grep "/${VERSION}\$"; then
+			if ! git show-ref | grep -q "/${VERSION}\$" >/dev/null 2>&1; then
 				echo -e "${CFMT_ERROR}Version ${VERSION} could not be found!${CFMT_NORMAL}" >&2
 				exit 1
 			fi
@@ -117,8 +117,8 @@ function import () {
 		fi
 		if [ "Cygwin" == $(${COMMON_DIR}/osinfo -d) ]; then
 			echo -e "${CFMT_INFO}Fixing cygwin symlinks${CFMT_NORMAL}" >&2
-			git config core.symlinks true
-			git checkout -f
+			git config core.symlinks true >&2
+			git checkout -f >&2
 		fi
 		flscript ${FLGHJACK_POSTIMPORT}
 		popd > /dev/null 2>&1
