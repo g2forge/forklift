@@ -11,15 +11,28 @@ function help () {
 SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
 SELF=${SELF_DIR}/$(basename ${0})
 
-. ${SELF_DIR}/source.bash
+. ${SELF_DIR}/../common/source.bash
+
+CACHE_ENTRYTEST=0
+case ${1} in
+	-h|--help|help)
+	help
+	exit 0
+	;;
+	-t|--test)
+	CACHE_ENTRYTEST=1
+	shift 1
+	;;
+esac
 
 set +u
 if [ -z ${CACHE_ROOT+x} ]; then
+	set -u
 	CACHE_ROOT=${FLCACHE_ROOT}/cache
 fi
 set -u
 
-if [ ! -d ${CACHE_ROOT} ]; then
+if [[ ${CACHE_ENTRYTEST} -ne 1 ]] && [ ! -d ${CACHE_ROOT} ]; then
 	mkdir -p ${CACHE_ROOT}
 	cat >${CACHE_ROOT}/README.md << EOF
 # Cache
@@ -44,11 +57,20 @@ SHA1=$(echo -n "$(pwd -P) ${CMD[@]}" | sha1sum | awk '{print $1}')
 CMD_DIR=${CACHE_ROOT}/${SHA1}
 CMD_STDOUT="${CMD_DIR}/stdout"
 CMD_EXITCODE="${CMD_DIR}/exitcode"
-CMD_FILE="${CMD_DIR}/cmd"
+
+if [[ ${CACHE_ENTRYTEST} -eq 1 ]]; then
+	if [ -f "${CMD_EXITCODE}" ]; then
+		echo "Cache entry exists"
+		exit 0 
+	else
+		echo "Cache entry not found"
+		exit 1
+	fi
+fi
 
 if [ ! -f "${CMD_EXITCODE}" ]; then
 	mkdir -p ${CMD_DIR}
-	echo "${CMD[@]}" > ${CMD_FILE}
+	echo "${CMD[@]}" > "${CMD_DIR}/cmd"
 	"${CMD[@]}" > ${CMD_STDOUT} 2>&1
 	echo ${PIPESTATUS[0]} > ${CMD_EXITCODE}
 fi
