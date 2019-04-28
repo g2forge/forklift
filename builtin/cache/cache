@@ -6,6 +6,7 @@ function help () {
 	echo
 	echo "Usage: $(basename ${0}) <command...>"
 	echo "\tYou may override the cache root directory by specifying the CACHE_ROOT environment variable"
+	echo "\tPlease see README.md for more about how cache entries are keyed"
 	echo
 }
 
