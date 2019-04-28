@@ -29,3 +29,8 @@ function teardown () {
   cache exit 93
   [ "$status" -eq 93 ]
 }
+
+@test "outputs" {
+  CACHE_ROOT="${CACHE_ROOT}" run ${BATS_TEST_DIRNAME}/testoutput
+  [ "$status" -eq 0 ]
+}

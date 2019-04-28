@@ -1,0 +1,19 @@
+#!/bin/bash
+set -eu -o pipefail
+
+SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
+SELF=${SELF_DIR}/$(basename ${0})
+
+TESTTEMP=$(mktemp -d)
+trap "{ rm -rf ${TESTTEMP}; }" EXIT
+CACHE_ROOT=${CACHE_ROOT} ${SELF_DIR}/../cache bash -c 'echo out >&1 && echo err >&2' > ${TESTTEMP}/out 2> ${TESTTEMP}/err
+OUTPUT=$(cat ${TESTTEMP}/out)
+if [ "${OUTPUT}" != "out" ]; then
+	echo "# Standard output doesn't match!" >&3
+	exit 1
+fi
+ERROR=$(cat ${TESTTEMP}/err)
+if [ "${ERROR}" != "err" ]; then
+	echo "# Standard error doesn't match!" >&3
+	exit 1
+fi

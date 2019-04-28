@@ -55,7 +55,6 @@ done
 SHA1=$(echo -n "$(pwd -P) ${CMD[@]}" | sha1sum | awk '{print $1}')
 
 CMD_DIR=${CACHE_ROOT}/${SHA1}
-CMD_STDOUT="${CMD_DIR}/stdout"
 CMD_EXITCODE="${CMD_DIR}/exitcode"
 
 if [[ ${CACHE_ENTRYTEST} -eq 1 ]]; then
@@ -68,12 +67,16 @@ if [[ ${CACHE_ENTRYTEST} -eq 1 ]]; then
 	fi
 fi
 
+CMD_STDOUT="${CMD_DIR}/stdout"
+CMD_STDERR="${CMD_DIR}/stderr"
+
 if [ ! -f "${CMD_EXITCODE}" ]; then
 	mkdir -p ${CMD_DIR}
 	echo "${CMD[@]}" > "${CMD_DIR}/cmd"
-	"${CMD[@]}" > ${CMD_STDOUT} 2>&1
+	"${CMD[@]}" > ${CMD_STDOUT} 2> ${CMD_STDERR}
 	echo ${PIPESTATUS[0]} > ${CMD_EXITCODE}
 fi
 
 cat ${CMD_STDOUT}
+cat ${CMD_STDERR} >&2
 exit $(cat ${CMD_EXITCODE})
