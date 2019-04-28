@@ -43,7 +43,7 @@ case ${WAREHOUSE} in
 		echo -e "${CFMT_INFO}Searching for jacks for pallet ${WAREHOUSE} ${PALLET} ${VERSION}${CFMT_NORMAL}" >&2
 		JACKFILE=$(mktemp)
 		set +e
-		${SELF_DIR}/cache ${SELF_DIR}/findjacks ${WAREHOUSE} ${PALLET} ${VERSION} > ${JACKFILE}
+		${SELF_DIR}/../cache/cache ${SELF_DIR}/findjacks ${WAREHOUSE} ${PALLET} ${VERSION} > ${JACKFILE}
 		set -e
 		if [ ! -f ${JACKFILE} ]; then
 			fail "Could not find suitable jack for pallet (couldn't even search for jacks)"

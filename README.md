@@ -78,6 +78,17 @@ You can replace `<ANY FORKLIFT COMMAND>` with `import <warehouse> <pallet> <vers
 As an example, please see [fl-clicommon](https://github.com/g2forge/fl-clicommon) and [winpty](https://github.com/g2forge/winpty).
 You may also want to read the documentation on how to add forklift scripts to your pallet for [GitHub](builtin/jack/github#scripts) or [Maven](builtin/jack/maven#scripts).
 
+## Example 6
+
+To run a command, or return the same results from a cache:
+
+```
+forklift run builtin cache current cache <ANY COMMAND>
+```
+
+This will use the [`cache`](builtin/cache) script built into forklift to either run your command, or return the same stdout, stderr and exit code.
+Please see the documentation for more about how cache entries are keyed.
+
 # Legal
 
 Copyright Greg Gibeling 2018-2019, licensed under the [Apache 2.0](LICENSE) license.

@@ -40,9 +40,9 @@ function install () {
 	COMMAND=${1}
 	PACKAGE=${2}
 	if ! which ${COMMAND} > /dev/null 2>&1; then
-		${SELF_DIR}/../../common/install ${PACKAGE}
+		${COMMON_DIR}/install ${PACKAGE}
 	elif [[ $(which ${COMMAND}) = *"/cygdrive/"* ]]; then
-		${SELF_DIR}/../../common/install ${PACKAGE}
+		${COMMON_DIR}/install ${PACKAGE}
 	fi
 }
 
@@ -82,11 +82,8 @@ function warehouse2host () {
 function verify () {
 	if [ "${WAREHOUSE}" != "com.github" ]; then
 		GHHOST=$(warehouse2host)
-		echo -e "${CFMT_INFO}Checking if ${GHHOST} is a GitHub Enterprise server${CFMT_NORMAL}" >&2
-		if ! (curl --connect-timeout 1 -is "https://${GHHOST}/api/v3" 2> /dev/null | grep -qe '^X-GitHub-'); then
-			if ! (curl --connect-timeout 1 -is "http://${GHHOST}/api/v3" 2> /dev/null | grep -qe '^X-GitHub-'); then
-				fail "Unknown warehouse: ${WAREHOUSE}"
-			fi
+		if ! ${COMMON_DIR}/../cache/cache ${SELF_DIR}/isghe ${GHHOST}; then
+			fail "Unknown warehouse: ${WAREHOUSE}"
 		fi
 	fi
 }
@@ -95,11 +92,16 @@ function import () {
 		verify
 		install git git
 		
+		echo -e "${CFMT_INFO}Checking protocols for ${WAREHOUSE}${CFMT_NORMAL}" >&2
+		GHHOST=$(warehouse2host)
+		REPOURL=$(${SELF_DIR}/repourl ${GHHOST})
+		
 		echo -e "${CFMT_INFO}Importing ${WAREHOUSE} ${PALLET} ${VERSION}${CFMT_NORMAL}" >&2
 		PARENT_DIR=$(dirname ${CACHE_DIR})
 		mkdir -p ${PARENT_DIR}
 		pushd ${PARENT_DIR} > /dev/null 2>&1
-		git clone -- git@$(warehouse2host):${PALLET}.git $(basename ${CACHE_DIR}) >&2
+		git clone -- "${REPOURL}${PALLET}.git" $(basename ${CACHE_DIR}) >&2
+		
 		cd ${CACHE_DIR}
 		BRANCH=$(git rev-parse --abbrev-ref HEAD)
 		if [ "${BRANCH}" != "${VERSION}" ]; then
@@ -113,7 +115,7 @@ function import () {
 			REFSPEC=$(git show-ref | grep "/${VERSION}\$" | cut -f 2 -d ' ')
 			git checkout -b ${VERSION} ${REFSPEC} >&2
 		fi
-		if [ "Cygwin" == $(${SELF_DIR}/../../common/osinfo -d) ]; then
+		if [ "Cygwin" == $(${COMMON_DIR}/osinfo -d) ]; then
 			echo -e "${CFMT_INFO}Fixing cygwin symlinks${CFMT_NORMAL}" >&2
 			git config core.symlinks true >&2
 			git checkout -f >&2
