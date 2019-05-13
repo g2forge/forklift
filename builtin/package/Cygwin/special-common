@@ -1,0 +1,71 @@
+# Environment variables
+#	SP_NAME: The human readable name of the program we're installing (e.g. "maven")
+#	SP_TARGET: the cygpath to install to (e.g. "/cygdrive/c/Program Files/maven")
+#	SP_RELATIVE: the cygpath from the target to directory within it containing the executable (e.g. "bin")
+# Functions
+#	sp_getdownload(): Outputs two lines, 1) the download URL for the most recent version, 2) the version number for that download
+
+echo -e "${CFMT_INFO}Getting ${SP_NAME} download link${CFMT_NORMAL}" >&2
+DOWNLOAD_INFO=$(sp_getdownload)
+DOWNLOAD_URL=$(echo "${DOWNLOAD_INFO}" | head -n1)
+DOWNLOAD_VERSION=$(echo "${DOWNLOAD_INFO}" | head -n2 | tail -n1)
+
+# TODO: run which
+if which mvn > /dev/null 2>&1; then
+	# TODO: we should know how many parent directories there are
+	INSTALLED_DIR=$(dirname "$(dirname "$(which mvn)")")
+	if [ "${INSTALLED_DIR}" != "${SP_TARGET}" ]; then
+		echo -e "${CFMT_WARNING}${SP_NAME} is already installed, but in a non-standard directory, will not check for upgrades!${CFMT_NORMAL}" >&2
+		exit 0
+	fi
+	
+	# TODO: get version
+	INSTALLED_VERSION=$(mvn --version | head -n1 | cut -f3 -d ' ')
+	echo -e "${CFMT_INFO}${SP_NAME} ${INSTALLED_VERSION} is already installed, checking for upgrade${CFMT_NORMAL}" >&2
+	
+	if ${COMMON_DIR}/version isnewer ${INSTALLED_VERSION} ${DOWNLOAD_VERSION}; then
+		echo -e "${CFMT_INFO}${SP_NAME} ${DOWNLOAD_VERSION} is available, installing upgrade${CFMT_NORMAL}" >&2
+	else
+		echo -e "${CFMT_INFO}${SP_NAME} is up to date${CFMT_NORMAL}" >&2
+		exit 0
+	fi
+fi
+
+INSTALL_TEMPDIR=$(mktemp -d)
+trap "{ rm -rf ${INSTALL_TEMPDIR}; }" EXIT
+echo -e "${CFMT_INFO}Installing ${SP_NAME}${CFMT_NORMAL} (temp dir is ${INSTALL_TEMPDIR})" >&2
+
+echo -e "${CFMT_INFO}Downloading ${SP_NAME} from ${DOWNLOAD_URL}${CFMT_NORMAL}" >&2
+# TODO: Download, unpack, create SOURCE directory
+curl -o ${INSTALL_TEMPDIR}/maven.tar.gz ${DOWNLOAD_URL}
+
+echo -e "${CFMT_INFO}Untaring maven${CFMT_NORMAL}" >&2
+pushd ${INSTALL_TEMPDIR} > /dev/null 2>&1
+	tar -xf maven.tar.gz
+popd > /dev/null 2>&1
+SOURCE=$(find ${INSTALL_TEMPDIR} -maxdepth 1 -type d -name "apache-maven-*")
+chmod -R a+r "${SOURCE}"
+
+echo -e "${CFMT_INFO}Installing ${SP_NAME} to $(cygpath -w "${SP_TARGET}")${CFMT_NORMAL} (and adding to windows path)" >&2
+cat > ${INSTALL_TEMPDIR}/setpath.ps1 <<EOF
+\$ErrorActionPreference = "Stop"
+\$target = '$(cygpath -w "${SP_TARGET}")'
+echo "Removing old ${SP_NAME} install from \$target"
+Remove-Item -ErrorAction Ignore -Force -Recurse "\$target"
+echo "Copying ${SP_NAME} to \$target"
+Copy-Item -Recurse -Force '$(cygpath -w "${SOURCE}")' "\$target"
+
+\$currentPath = [Environment]::GetEnvironmentVariable('path', 'machine');
+if ((\$currentPath).Contains(\$target)) {
+	echo "\$target already on the path"
+} else {
+	echo "Adding \$target to the path"
+	[Environment]::SetEnvironmentVariable('path', "\$(\$currentPath);\$(\$target)\\bin",'Machine');	
+}
+echo "Success"
+pause
+EOF
+unix2dos ${INSTALL_TEMPDIR}/setpath.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -Command "\$p = Start-Process powershell \"-NoExit -Command $(cygpath -w ${INSTALL_TEMPDIR}/setpath.ps1)\" -Verb runAs -PassThru -Wait; Exit \$p.ExitCode"
+
+echo -e "${CFMT_SUCCESS}Successfully installed ${SP_NAME}${CFMT_NORMAL}!" >&2
