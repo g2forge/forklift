@@ -13,64 +13,32 @@ SELF=${SELF_DIR}/$(basename ${0})
 
 . ${SELF_DIR}/../../../common/source.bash
 
-TARGET="/cygdrive/c/Program Files/Maven"
+SP_NAME="maven"
+SP_TARGET="/cygdrive/c/Program Files/Maven"
+SP_RELATIVE="bin"
 
-echo -e "${CFMT_INFO}Getting maven download link${CFMT_NORMAL}" >&2
-MVN_URL=$(curl https://maven.apache.org/download.cgi | grep -E "/apache-maven-([^-]*)-bin.tar.gz\">apache-maven-\\1-bin.tar.gz</a>" | sed -e 's#.*href="\([^"]*\)".*#\1#')
-
-if which mvn > /dev/null 2>&1; then
-	DIR_INSTALLED=$(dirname "$(dirname "$(which mvn)")")
-	if [ "${DIR_INSTALLED}" != "${TARGET}" ]; then
-		echo -e "${CFMT_WARNING}Maven is already installed, but in a non-standard directory, will not check for upgrades!${CFMT_NORMAL}" >&2
-		exit 0
-	fi
-	
-	VER_INSTALLED=$(mvn --version | head -n1 | cut -f3 -d ' ')
-	echo -e "${CFMT_INFO}Maven ${VER_INSTALLED} is already installed, checking for upgrade${CFMT_NORMAL}" >&2
-	VER_DOWNLOAD=$(basename "${MVN_URL}" | cut -f3 -d '-')
-	
-	if ${COMMON_DIR}/version isnewer ${VER_INSTALLED} ${VER_DOWNLOAD}; then
-		echo -e "${CFMT_INFO}Maven ${VER_DOWNLOAD} is available, installing upgrade${CFMT_NORMAL}" >&2
-	else
-		echo -e "${CFMT_INFO}Maven is up to date${CFMT_NORMAL}" >&2
-		exit 0
-	fi
-fi
-
-MVN_TEMPDIR=$(mktemp -d)
-trap "{ rm -rf ${MVN_TEMPDIR}; }" EXIT
-echo -e "${CFMT_INFO}Installing maven${CFMT_NORMAL} (temp dir is ${MVN_TEMPDIR})" >&2
-
-echo -e "${CFMT_INFO}Downloading Maven from ${MVN_URL}${CFMT_NORMAL}" >&2
-curl -o ${MVN_TEMPDIR}/maven.tar.gz ${MVN_URL}
-
-echo -e "${CFMT_INFO}Untaring maven${CFMT_NORMAL}" >&2
-pushd ${MVN_TEMPDIR} > /dev/null 2>&1
-	tar -xf maven.tar.gz
-popd > /dev/null 2>&1
-SOURCE=$(find ${MVN_TEMPDIR} -maxdepth 1 -type d -name "apache-maven-*")
-chmod -R a+r "${SOURCE}"
-
-echo -e "${CFMT_INFO}Installing Maven to $(cygpath -w "${TARGET}")${CFMT_NORMAL} (and adding to windows path)" >&2
-cat > ${MVN_TEMPDIR}/setpath.ps1 <<EOF
-\$ErrorActionPreference = "Stop"
-\$target = '$(cygpath -w "${TARGET}")'
-echo "Removing old maven install from \$target"
-Remove-Item -ErrorAction Ignore -Force -Recurse "\$target"
-echo "Copying maven to \$target"
-Copy-Item -Recurse -Force '$(cygpath -w "${SOURCE}")' "\$target"
-
-\$currentPath = [Environment]::GetEnvironmentVariable('path', 'machine');
-if ((\$currentPath).Contains(\$target)) {
-	echo "\$target already on the path"
-} else {
-	echo "Adding \$target to the path"
-	[Environment]::SetEnvironmentVariable('path', "\$(\$currentPath);\$(\$target)\\bin",'Machine');	
+# Accepts the temporary directory as an argument, returns the version number for the most recent version we can download on stdout
+function sp_downloadversion() {
+	URL=$(curl https://maven.apache.org/download.cgi | grep -E "/apache-maven-([^-]*)-bin.tar.gz\">apache-maven-\\1-bin.tar.gz</a>" | sed -e 's#.*href="\([^"]*\)".*#\1#')
+	echo "${URL}" > "${1}/url"
+	basename "${URL}" | cut -f3 -d '-'
 }
-echo "Success"
-pause
-EOF
-unix2dos ${MVN_TEMPDIR}/setpath.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -Command "\$p = Start-Process powershell \"-NoExit -Command $(cygpath -w ${MVN_TEMPDIR}/setpath.ps1)\" -Verb runAs -PassThru -Wait; Exit \$p.ExitCode"
+# Fails if the program is not installed, otherwise returns install directory and installed version as two lines on stdout
+function sp_installedversion() {
+	if WHICH_OUTPUT=$(which mvn); then
+		dirname "$(dirname "${WHICH_OUTPUT}")"
+		mvn --version | head -n1 | cut -f3 -d ' '
+	else
+		exit 1
+	fi
+}
+# Accepts the temporary directory as an argument, downloads the most recent version, and creates the directory structure that should be installed. Returns the absolute path to that directory on stdout
+function sp_downloadsource() {
+	curl -o "${1}/maven.tar.gz" $(cat "${1}/url")
+	pushd ${MVN_TEMPDIR} > /dev/null 2>&1
+		tar -xf maven.tar.gz
+	popd > /dev/null 2>&1
+	find "${1}" -maxdepth 1 -type d -name "apache-maven-*"
+}
 
-echo -e "${CFMT_SUCCESS}Successfully installed maven${CFMT_NORMAL}!" >&2
+. ${SELF_DIR}/../special-common

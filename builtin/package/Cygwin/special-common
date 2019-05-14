@@ -3,25 +3,26 @@
 #	SP_TARGET: the cygpath to install to (e.g. "/cygdrive/c/Program Files/maven")
 #	SP_RELATIVE: the cygpath from the target to directory within it containing the executable (e.g. "bin")
 # Functions
-#	sp_getdownload(): Outputs two lines, 1) the download URL for the most recent version, 2) the version number for that download
+#	sp_downloadversion(): Accepts the temporary directory as an argument, returns the version number for the most recent version we can download on stdout
+#	sp_installedversion(): Fails if the program is not installed, otherwise returns install directory and installed version as two lines on stdout
+#	sp_downloadsource(): Accepts the temporary directory as an argument, downloads the most recent version, and creates the directory structure that should be installed. Returns the absolute path to that directory on stdout
 
-echo -e "${CFMT_INFO}Getting ${SP_NAME} download link${CFMT_NORMAL}" >&2
-DOWNLOAD_INFO=$(sp_getdownload)
-DOWNLOAD_URL=$(echo "${DOWNLOAD_INFO}" | head -n1)
-DOWNLOAD_VERSION=$(echo "${DOWNLOAD_INFO}" | head -n2 | tail -n1)
+INSTALL_TEMPDIR=$(mktemp -d)
+trap "{ rm -rf ${INSTALL_TEMPDIR}; }" EXIT
+echo -e "${CFMT_INFO}Installing ${SP_NAME}${CFMT_NORMAL} (temp dir is ${INSTALL_TEMPDIR})" >&2
 
-# TODO: run which
-if which mvn > /dev/null 2>&1; then
-	# TODO: we should know how many parent directories there are
-	INSTALLED_DIR=$(dirname "$(dirname "$(which mvn)")")
-	if [ "${INSTALLED_DIR}" != "${SP_TARGET}" ]; then
+echo -e "${CFMT_INFO}Getting ${SP_NAME} download info${CFMT_NORMAL}" >&2
+DOWNLOAD_VERSION=$(sp_downloadversion "${INSTALL_TEMPDIR}")
+
+if INSTALLED_OUTPUT=$(sp_installedversion); then
+    INSTALLED_DIR=$(echo "${INSTALLED_OUTPUT}" | head -n1)
+    if [ "${INSTALLED_DIR}" != "${SP_TARGET}" ]; then
 		echo -e "${CFMT_WARNING}${SP_NAME} is already installed, but in a non-standard directory, will not check for upgrades!${CFMT_NORMAL}" >&2
 		exit 0
 	fi
 	
-	# TODO: get version
-	INSTALLED_VERSION=$(mvn --version | head -n1 | cut -f3 -d ' ')
-	echo -e "${CFMT_INFO}${SP_NAME} ${INSTALLED_VERSION} is already installed, checking for upgrade${CFMT_NORMAL}" >&2
+    INSTALLED_VERSION=$(echo "${INSTALLED_OUTPUT}" | head -n2 | tail -n1)
+    echo -e "${CFMT_INFO}${SP_NAME} ${INSTALLED_VERSION} is already installed, checking for upgrade${CFMT_NORMAL}" >&2
 	
 	if ${COMMON_DIR}/version isnewer ${INSTALLED_VERSION} ${DOWNLOAD_VERSION}; then
 		echo -e "${CFMT_INFO}${SP_NAME} ${DOWNLOAD_VERSION} is available, installing upgrade${CFMT_NORMAL}" >&2
@@ -31,20 +32,9 @@ if which mvn > /dev/null 2>&1; then
 	fi
 fi
 
-INSTALL_TEMPDIR=$(mktemp -d)
-trap "{ rm -rf ${INSTALL_TEMPDIR}; }" EXIT
-echo -e "${CFMT_INFO}Installing ${SP_NAME}${CFMT_NORMAL} (temp dir is ${INSTALL_TEMPDIR})" >&2
-
-echo -e "${CFMT_INFO}Downloading ${SP_NAME} from ${DOWNLOAD_URL}${CFMT_NORMAL}" >&2
-# TODO: Download, unpack, create SOURCE directory
-curl -o ${INSTALL_TEMPDIR}/maven.tar.gz ${DOWNLOAD_URL}
-
-echo -e "${CFMT_INFO}Untaring maven${CFMT_NORMAL}" >&2
-pushd ${INSTALL_TEMPDIR} > /dev/null 2>&1
-	tar -xf maven.tar.gz
-popd > /dev/null 2>&1
-SOURCE=$(find ${INSTALL_TEMPDIR} -maxdepth 1 -type d -name "apache-maven-*")
-chmod -R a+r "${SOURCE}"
+echo -e "${CFMT_INFO}Downloading ${SP_NAME} ${DOWNLOAD_VERSION}${CFMT_NORMAL}" >&2
+DOWNLOAD_SOURCE=$(sp_downloadsource "${INSTALL_TEMPDIR}")
+chmod -R a+r "${DOWNLOAD_SOURCE}"
 
 echo -e "${CFMT_INFO}Installing ${SP_NAME} to $(cygpath -w "${SP_TARGET}")${CFMT_NORMAL} (and adding to windows path)" >&2
 cat > ${INSTALL_TEMPDIR}/setpath.ps1 <<EOF
@@ -53,14 +43,14 @@ cat > ${INSTALL_TEMPDIR}/setpath.ps1 <<EOF
 echo "Removing old ${SP_NAME} install from \$target"
 Remove-Item -ErrorAction Ignore -Force -Recurse "\$target"
 echo "Copying ${SP_NAME} to \$target"
-Copy-Item -Recurse -Force '$(cygpath -w "${SOURCE}")' "\$target"
+Copy-Item -Recurse -Force '$(cygpath -w "${SP_SOURCE}")' "\$target"
 
 \$currentPath = [Environment]::GetEnvironmentVariable('path', 'machine');
 if ((\$currentPath).Contains(\$target)) {
 	echo "\$target already on the path"
 } else {
 	echo "Adding \$target to the path"
-	[Environment]::SetEnvironmentVariable('path', "\$(\$currentPath);\$(\$target)\\bin",'Machine');	
+	[Environment]::SetEnvironmentVariable('path', "\$(\$currentPath);\$(\$target)\\$(cygpath -w "${SP_RELATIVE}")",'Machine');	
 }
 echo "Success"
 pause
