@@ -24,6 +24,8 @@ Both of these examples have the following form:
 bash <(curl -L https://raw.githubusercontent.com/<INSTALLER_ORG>/<INSTALLER_REPO>/<INSTALLER_COMMIT>/install) <OPTIONAL FORKLIFT COMMAND>
 ```
 
+Note that due to the second layer of downloads we currently do not have a way to test a custom powershell and posix install script at the same time without a little hacking.
+
 ## Custom Release
 
 If you want to try intalling a custom release, this is the section for you.
@@ -31,10 +33,11 @@ This can be particularly helpful if you're modifying the [post-import](../.forkl
 
 The [install](../install) script normally downloads and installs the most recent release of forklift.
 This can be changed by setting the environment variable `RELEASE_URL` when running the installer.
-For example, the following command will install the `HEAD` of the `master` branch of forklift:
+For example, the following command (pick on depending on OS) will install the `HEAD` of the `master` branch of forklift:
 
 ```
 RELEASE_URL="https://github.com/g2forge/forklift/archive/master.zip" bash <(curl -L https://raw.githubusercontent.com/g2forge/forklift/master/install)
+$env:RELEASE_URL="https://github.com/g2forge/forklift/archive/master.zip"; (New-Object System.Net.WebClient).DownloadFile("https://raw.githubusercontent.com/g2forge/forklift/master/install.ps1", "$pwd\install.ps1"); powershell -ExecutionPolicy Bypass .\install.ps1
 ```
 
 To obtain a usable `RELEASE_URL` you can simply use the GitHub UI, as shown below.
