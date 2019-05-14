@@ -33,17 +33,18 @@ if INSTALLED_OUTPUT=$(sp_installedversion); then
 fi
 
 echo -e "${CFMT_INFO}Downloading ${SP_NAME} ${DOWNLOAD_VERSION}${CFMT_NORMAL}" >&2
-DOWNLOAD_SOURCE=$(sp_downloadsource "${INSTALL_TEMPDIR}")
-chmod -R a+r "${DOWNLOAD_SOURCE}"
+SP_SOURCE=$(sp_downloadsource "${INSTALL_TEMPDIR}")
+chmod -R a+r "${SP_SOURCE}"
 
 echo -e "${CFMT_INFO}Installing ${SP_NAME} to $(cygpath -w "${SP_TARGET}")${CFMT_NORMAL} (and adding to windows path)" >&2
 cat > ${INSTALL_TEMPDIR}/setpath.ps1 <<EOF
 \$ErrorActionPreference = "Stop"
+\$source = '$(cygpath -w "${SP_SOURCE}")'
 \$target = '$(cygpath -w "${SP_TARGET}")'
 echo "Removing old ${SP_NAME} install from \$target"
 Remove-Item -ErrorAction Ignore -Force -Recurse "\$target"
 echo "Copying ${SP_NAME} to \$target"
-Copy-Item -Recurse -Force '$(cygpath -w "${SP_SOURCE}")' "\$target"
+Copy-Item -Recurse -Force "\$source" "\$target"
 
 \$currentPath = [Environment]::GetEnvironmentVariable('path', 'machine');
 if ((\$currentPath).Contains(\$target)) {
@@ -56,6 +57,6 @@ echo "Success"
 pause
 EOF
 unix2dos ${INSTALL_TEMPDIR}/setpath.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -Command "\$p = Start-Process powershell \"-NoExit -Command $(cygpath -w ${INSTALL_TEMPDIR}/setpath.ps1)\" -Verb runAs -PassThru -Wait; Exit \$p.ExitCode"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "\$p = Start-Process powershell \"-Command $(cygpath -w ${INSTALL_TEMPDIR}/setpath.ps1)\" -Verb runAs -PassThru -Wait; Exit \$p.ExitCode"
 
 echo -e "${CFMT_SUCCESS}Successfully installed ${SP_NAME}${CFMT_NORMAL}!" >&2

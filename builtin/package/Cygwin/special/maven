@@ -25,7 +25,7 @@ function sp_downloadversion() {
 }
 # Fails if the program is not installed, otherwise returns install directory and installed version as two lines on stdout
 function sp_installedversion() {
-	if WHICH_OUTPUT=$(which mvn); then
+	if WHICH_OUTPUT=$(which mvn 2> /dev/null); then
 		dirname "$(dirname "${WHICH_OUTPUT}")"
 		mvn --version | head -n1 | cut -f3 -d ' '
 	else
