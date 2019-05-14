@@ -46,12 +46,13 @@ Remove-Item -ErrorAction Ignore -Force -Recurse "\$target"
 echo "Copying ${SP_NAME} to \$target"
 Copy-Item -Recurse -Force "\$source" "\$target"
 
-\$currentPath = [Environment]::GetEnvironmentVariable('path', 'machine');
+\$currentPath = [Environment]::GetEnvironmentVariable('Path', 'Machine');
 if ((\$currentPath).Contains(\$target)) {
 	echo "\$target already on the path"
 } else {
 	echo "Adding \$target to the path"
-	[Environment]::SetEnvironmentVariable('path', "\$(\$currentPath);\$(\$target)\\$(cygpath -w "${SP_RELATIVE}")",'Machine');	
+	[Environment]::SetEnvironmentVariable('Path', "\$(\$currentPath);\$(\$target)\\$(cygpath -w "${SP_RELATIVE}")", 'Machine');
+	$env:Path = [System.Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path', 'User')	
 }
 echo "Success"
 pause
