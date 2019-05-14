@@ -34,7 +34,9 @@ if [ ${#PACKAGES_CYGWIN[@]} -ne 0 ]; then
 	# Download the cygwin installer if it's not already cached (TODO: Create a warehouse for this to version it better, they must have a proper download site with versions somewhere I can use to allow pallet updates to take this over)
 	if [ ! -f ${EXECUTABLE_FILE} ]; then
 		echo -e "${CFMT_INFO}Downloading cygwin installer ${CFMT_NORMAL}" >&2
-		curl https://cygwin.com/${EXECUTABLE_NAME} -o ${EXECUTABLE_FILE}
+		pushd ${SELF_DIR} > /dev/null 2>&1
+			curl https://cygwin.com/${EXECUTABLE_NAME} -o ${EXECUTABLE_NAME}
+		popd > /dev/null 2>&1
 		chmod +x ${EXECUTABLE_FILE}
 	fi
 	PACKAGELIST=$(IFS=,; echo "${PACKAGES_CYGWIN[*]}")
@@ -47,11 +49,17 @@ if [ ${#PACKAGES_CYGWIN[@]} -ne 0 ]; then
 	trap "{ rm -rf ${PS1_TEMPDIR}; }" EXIT
 	cat > ${PS1_TEMPDIR}/install.ps1 <<EOF
 \$ErrorActionPreference = "Stop"
+
+if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+	Start-Process powershell.exe "-NoProfile -ExecutionPolicy Bypass -File \`"\$PSCommandPath\`"" -Verb RunAs
+	exit
+}
+
 $(cygpath -w ${EXECUTABLE_FILE}) -q -W -P ${PACKAGELIST}
 pause
 EOF
 	# Use powershell to run the installer
-	powershell -NoProfile -ExecutionPolicy Bypass -Command "\$p = Start-Process powershell \"-Command $(cygpath -w ${PS1_TEMPDIR}/install.ps1)\" -Verb runAs -PassThru -Wait; Exit \$p.ExitCode"
+	powershell -NoProfile -ExecutionPolicy Bypass -Command "\$p = Start-Process powershell \"-ExecutionPolicy Bypass -Command $(cygpath -w ${PS1_TEMPDIR}/install.ps1)\" -Verb runAs -PassThru -Wait; Exit \$p.ExitCode"
 fi
 
 echo -e "${CFMT_SUCCESS}Installed ${@}${CFMT_NORMAL}" >&2

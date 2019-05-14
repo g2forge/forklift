@@ -1,0 +1,66 @@
+# Environment variables
+#	SP_NAME: The human readable name of the program we're installing (e.g. "maven")
+#	SP_TARGET: the cygpath to install to (e.g. "/cygdrive/c/Program Files/maven")
+#	SP_RELATIVE: the cygpath from the target to directory within it containing the executable (e.g. "bin")
+# Functions
+#	sp_downloadversion(): Accepts the temporary directory as an argument, returns the version number for the most recent version we can download on stdout
+#	sp_installedversion(): Fails if the program is not installed, otherwise returns install directory and installed version as two lines on stdout
+#	sp_downloadsource(): Accepts the temporary directory as an argument, downloads the most recent version, and creates the directory structure that should be installed. Returns the absolute path to that directory on stdout
+
+INSTALL_TEMPDIR=$(mktemp -d)
+trap "{ rm -rf ${INSTALL_TEMPDIR}; }" EXIT
+echo -e "${CFMT_INFO}Installing ${SP_NAME}${CFMT_NORMAL} (temp dir is ${INSTALL_TEMPDIR})" >&2
+
+echo -e "${CFMT_INFO}Getting ${SP_NAME} download info${CFMT_NORMAL}" >&2
+DOWNLOAD_VERSION=$(sp_downloadversion "${INSTALL_TEMPDIR}")
+
+if INSTALLED_OUTPUT=$(sp_installedversion); then
+    INSTALLED_DIR=$(echo "${INSTALLED_OUTPUT}" | head -n1)
+    if [ "${INSTALLED_DIR}" != "${SP_TARGET}" ]; then
+		echo -e "${CFMT_WARNING}${SP_NAME} is already installed, but in a non-standard directory, will not check for upgrades!${CFMT_NORMAL}" >&2
+		exit 0
+	fi
+	
+    INSTALLED_VERSION=$(echo "${INSTALLED_OUTPUT}" | head -n2 | tail -n1)
+    echo -e "${CFMT_INFO}${SP_NAME} ${INSTALLED_VERSION} is already installed, checking for upgrade${CFMT_NORMAL}" >&2
+	
+	if [ "${INSTALLED_VERSION}" != "${DOWNLOAD_VERSION}" ] && ${COMMON_DIR}/version isnewer ${INSTALLED_VERSION} ${DOWNLOAD_VERSION} > /dev/null 2>&1; then
+		echo -e "${CFMT_INFO}${SP_NAME} ${DOWNLOAD_VERSION} is available, installing upgrade${CFMT_NORMAL}" >&2
+	else
+		echo -e "${CFMT_INFO}${SP_NAME} is up to date${CFMT_NORMAL}" >&2
+		exit 0
+	fi
+fi
+
+echo -e "${CFMT_INFO}Downloading ${SP_NAME} ${DOWNLOAD_VERSION}${CFMT_NORMAL}" >&2
+SP_SOURCE=$(sp_downloadsource "${INSTALL_TEMPDIR}")
+chmod -R a+r "${SP_SOURCE}"
+
+echo -e "${CFMT_INFO}Installing ${SP_NAME} to $(cygpath -w "${SP_TARGET}")${CFMT_NORMAL} (and adding to windows path)" >&2
+cat > ${INSTALL_TEMPDIR}/setpath.ps1 <<EOF
+\$ErrorActionPreference = "Stop"
+\$source = '$(cygpath -w "${SP_SOURCE}")'
+\$target = '$(cygpath -w "${SP_TARGET}")'
+echo "Removing old ${SP_NAME} install from \$target"
+Remove-Item -ErrorAction Ignore -Force -Recurse "\$target"
+echo "Copying ${SP_NAME} to \$target"
+Copy-Item -Recurse -Force "\$source" "\$target"
+
+\$currentPath = [Environment]::GetEnvironmentVariable('path', 'machine');
+if ((\$currentPath).Contains(\$target)) {
+	echo "\$target already on the path"
+} else {
+	echo "Adding \$target to the path"
+	[Environment]::SetEnvironmentVariable('path', "\$(\$currentPath);\$(\$target)\\$(cygpath -w "${SP_RELATIVE}")",'Machine');	
+}
+echo "Success"
+pause
+EOF
+
+if ! which unix2dos > /dev/null 2>&1; then
+	$(cd "$(dirname "${BASH_SOURCE}")" && pwd -P)/install dos2unix
+fi
+unix2dos ${INSTALL_TEMPDIR}/setpath.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -Command "\$p = Start-Process powershell \"-ExecutionPolicy Bypass -Command $(cygpath -w ${INSTALL_TEMPDIR}/setpath.ps1)\" -Verb runAs -PassThru -Wait; Exit \$p.ExitCode"
+
+echo -e "${CFMT_SUCCESS}Successfully installed ${SP_NAME}${CFMT_NORMAL}!" >&2
