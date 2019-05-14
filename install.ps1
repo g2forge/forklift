@@ -8,13 +8,18 @@ if ([Environment]::Is64BitProcess) {
 
 $directory = Join-Path ([System.IO.Path]::GetTempPath()) ([System.Guid]::NewGuid())
 Set-Location -Path "$directory"
+echo "Working in $directory"
 
 $url = "https://cygwin.com/$output"
-(New-Object System.Net.WebClient).DownloadFile($url, $output)
-$output -q -W
+echo "Downloading Cygwin installer"
+(New-Object System.Net.WebClient).DownloadFile($url, "$directory\$output")
+
+echo "Installing Cygwin"
+$directory\$output -q -W
 
 Remove-Item -ErrorAction Ignore -Force -Recurse "$directory"
 
+echo "Installing forklift"
 bash -c 'bash <(curl -L https://raw.githubusercontent.com/g2forge/forklift/master/install)'
 
 rm $PSCommandPath
