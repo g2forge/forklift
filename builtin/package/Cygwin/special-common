@@ -52,7 +52,7 @@ if ((\$currentPath).Contains(\$target)) {
 } else {
 	echo "Adding \$target to the path"
 	[Environment]::SetEnvironmentVariable('Path', "\$(\$currentPath);\$(\$target)\\$(cygpath -w "${SP_RELATIVE}")", 'Machine');
-	$env:Path = [System.Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path', 'User')	
+	\$env:Path = [System.Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path', 'User')	
 }
 echo "Success"
 pause
