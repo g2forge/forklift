@@ -1,0 +1,44 @@
+#!/bin/bash
+set -eu -o pipefail
+
+function help () {
+	echo "$(basename ${0}): Install ant on windows"
+	echo
+	echo "Usage: $(basename ${0})"
+	echo
+}
+
+SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
+SELF=${SELF_DIR}/$(basename ${0})
+
+. ${SELF_DIR}/../../../common/source.bash
+
+SP_NAME="ant"
+SP_TARGET="/cygdrive/c/Program Files/ANT"
+SP_RELATIVE="bin"
+
+# Accepts the temporary directory as an argument, returns the version number for the most recent version we can download on stdout
+function sp_downloadversion() {
+	URL=$(curl https://ant.apache.org/bindownload.cgi 2> /dev/null | grep -E "/apache-ant-([^-]*)-bin.tar.gz\">apache-ant-\\1-bin.tar.gz</a>" | sed -e 's#.*href="\([^"]*\)".*#\1#' | tail -n1)
+	echo "${URL}" > "${1}/url"
+	basename "${URL}" | cut -f3 -d '-'
+}
+# Fails if the program is not installed, otherwise returns install directory and installed version as two lines on stdout
+function sp_installedversion() {
+	if WHICH_OUTPUT=$(which ant); then
+		dirname "$(dirname "${WHICH_OUTPUT}")"
+		ant -version | head -n1 | cut -f4 -d ' '
+	else
+		exit 1
+	fi
+}
+# Accepts the temporary directory as an argument, downloads the most recent version, and creates the directory structure that should be installed. Returns the absolute path to that directory on stdout
+function sp_downloadsource() {
+	curl -o "${1}/ant.tar.gz" $(cat "${1}/url")
+	pushd "${1}" > /dev/null 2>&1
+		tar -xf ant.tar.gz
+	popd > /dev/null 2>&1
+	find "${1}" -maxdepth 1 -type d -name "apache-ant-*"
+}
+
+. ${SELF_DIR}/../special-common
