@@ -96,9 +96,11 @@ else
 				echo "${STATUS_STEP}"
 				${FORKLIFT} import com.github ${RELEASE_ORG}/${RELEASE_REPO} ${RELEASE_TAG_NAME}
 				
-				STATUS_STEP="Removing forklift ${INSTALLED_VERSION}"
-				echo "${STATUS_STEP}"
-				${FORKLIFT} delete com.github ${RELEASE_ORG}/${RELEASE_REPO} ${INSTALLED_VERSION}
+				if [ "${INSTALLED_VERSION}" != "${RELEASE_TAG_NAME}" ]; then
+					STATUS_STEP="Removing forklift ${INSTALLED_VERSION}"
+					echo "${STATUS_STEP}"
+					${FORKLIFT} delete com.github ${RELEASE_ORG}/${RELEASE_REPO} ${INSTALLED_VERSION}
+				fi
 			fi
 		else
 			# Forklift wasn't already installed, so use curl to download a release from github for temporary usage

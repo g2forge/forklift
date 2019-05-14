@@ -28,17 +28,18 @@ if (-not (Get-Command "bash.exe" -ErrorAction SilentlyContinue)) {
 	
 	Remove-Item -ErrorAction Ignore -Force -Recurse "$directory"
 	
-	$currentPath = [Environment]::GetEnvironmentVariable('path', 'machine')
+	$currentPath = [Environment]::GetEnvironmentVariable('Path', 'Machine')
 	if (($currentPath).ToLower().Contains("c:\cygwin")) {
 		echo "Cygwin is already on the path"
 	} else {
 		echo "Adding Cygwin to the path"
-		[Environment]::SetEnvironmentVariable('path', "$currentPath;$cygpath", 'Machine');	
+		[Environment]::SetEnvironmentVariable('Path', "$currentPath;$cygpath", 'Machine');
+		$env:Path = [System.Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path', 'User')	
 	}
 }
 
 echo "Installing forklift"
-bash -l -c 'bash <(curl -L https://raw.githubusercontent.com/g2forge/forklift/master/install)'
+bash -l -c "bash <`(curl -L https://raw.githubusercontent.com/g2forge/forklift/master/install`) $args"
 
 rm $PSCommandPath
 pause
