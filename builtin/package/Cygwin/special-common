@@ -61,6 +61,6 @@ if ! which unix2dos > /dev/null 2>&1; then
 	$(cd "$(dirname "${BASH_SOURCE}")" && pwd -P)/install dos2unix
 fi
 unix2dos ${INSTALL_TEMPDIR}/setpath.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -Command "\$p = Start-Process powershell \"-Command $(cygpath -w ${INSTALL_TEMPDIR}/setpath.ps1)\" -Verb runAs -PassThru -Wait; Exit \$p.ExitCode"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "\$p = Start-Process powershell \"-ExecutionPolicy Bypass -Command $(cygpath -w ${INSTALL_TEMPDIR}/setpath.ps1)\" -Verb runAs -PassThru -Wait; Exit \$p.ExitCode"
 
 echo -e "${CFMT_SUCCESS}Successfully installed ${SP_NAME}${CFMT_NORMAL}!" >&2
