@@ -19,7 +19,7 @@ SP_RELATIVE="bin"
 
 # Accepts the temporary directory as an argument, returns the version number for the most recent version we can download on stdout
 function sp_downloadversion() {
-	URL=$(curl https://maven.apache.org/download.cgi | grep -E "/apache-maven-([^-]*)-bin.tar.gz\">apache-maven-\\1-bin.tar.gz</a>" | sed -e 's#.*href="\([^"]*\)".*#\1#')
+	URL=$(curl https://maven.apache.org/download.cgi 2> /dev/null | grep -E "/apache-maven-([^-]*)-bin.tar.gz\">apache-maven-\\1-bin.tar.gz</a>" | sed -e 's#.*href="\([^"]*\)".*#\1#')
 	echo "${URL}" > "${1}/url"
 	basename "${URL}" | cut -f3 -d '-'
 }
@@ -35,7 +35,7 @@ function sp_installedversion() {
 # Accepts the temporary directory as an argument, downloads the most recent version, and creates the directory structure that should be installed. Returns the absolute path to that directory on stdout
 function sp_downloadsource() {
 	curl -o "${1}/maven.tar.gz" $(cat "${1}/url")
-	pushd ${MVN_TEMPDIR} > /dev/null 2>&1
+	pushd "${1}" > /dev/null 2>&1
 		tar -xf maven.tar.gz
 	popd > /dev/null 2>&1
 	find "${1}" -maxdepth 1 -type d -name "apache-maven-*"

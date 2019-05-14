@@ -24,7 +24,7 @@ if INSTALLED_OUTPUT=$(sp_installedversion); then
     INSTALLED_VERSION=$(echo "${INSTALLED_OUTPUT}" | head -n2 | tail -n1)
     echo -e "${CFMT_INFO}${SP_NAME} ${INSTALLED_VERSION} is already installed, checking for upgrade${CFMT_NORMAL}" >&2
 	
-	if ${COMMON_DIR}/version isnewer ${INSTALLED_VERSION} ${DOWNLOAD_VERSION}; then
+	if [ "${INSTALLED_VERSION}" != "${DOWNLOAD_VERSION}" ] && ${COMMON_DIR}/version isnewer ${INSTALLED_VERSION} ${DOWNLOAD_VERSION} > /dev/null 2>&1; then
 		echo -e "${CFMT_INFO}${SP_NAME} ${DOWNLOAD_VERSION} is available, installing upgrade${CFMT_NORMAL}" >&2
 	else
 		echo -e "${CFMT_INFO}${SP_NAME} is up to date${CFMT_NORMAL}" >&2
