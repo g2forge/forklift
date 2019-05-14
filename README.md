@@ -11,8 +11,8 @@ For more information about forklift, please [read the docs](doc).
 # Usage
 
 * **Install forklift**
-  * `bash <(curl -L https://raw.githubusercontent.com/g2forge/forklift/master/install)`
-  * `(New-Object System.Net.WebClient).DownloadFile("https://raw.githubusercontent.com/g2forge/forklift/master/install.ps1", "install.ps1"); powershell -ExecutionPolicy Bypass install.ps1`
+  * POSIX operating systems: `bash <(curl -L https://raw.githubusercontent.com/g2forge/forklift/master/install)`
+  * Windows operating systems: `(New-Object System.Net.WebClient).DownloadFile("https://raw.githubusercontent.com/g2forge/forklift/master/install.ps1", "install.ps1"); powershell -ExecutionPolicy Bypass install.ps1`
 * Run a command from a pallet: `forklift run <warehouse> <pallet> <version> <command-with-arguments>`
 * Upgrade forklift: `forklift upgrade`, will check for a new version of forklift itself and upgrade if appropriate
 * Uninstall forklift: `forklift uninstall` (will also clear out all cached and temporary data)
