@@ -39,7 +39,7 @@ if (-not (Get-Command "bash.exe" -ErrorAction SilentlyContinue)) {
 }
 
 echo "Installing forklift"
-bash -l -c "bash <`(curl -L https://raw.githubusercontent.com/g2forge/forklift/master/install`) $args"
+if (-not (Test-Path env:INSTALL_URL)) { $env:INSTALL_URL = 'https://raw.githubusercontent.com/g2forge/forklift/master/install' }
+bash -l -c "bash <`(curl -L $env:INSTALL_URL`) $args"
 
 rm $PSCommandPath
-pause
