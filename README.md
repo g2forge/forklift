@@ -12,7 +12,7 @@ For more information about forklift, please [read the docs](doc).
 
 * **Install forklift**
   * POSIX operating systems: `bash <(curl -L https://raw.githubusercontent.com/g2forge/forklift/master/install)`
-  * Windows operating systems: `(New-Object System.Net.WebClient).DownloadFile("https://raw.githubusercontent.com/g2forge/forklift/master/install.ps1", "$pwd\install.ps1"); powershell -ExecutionPolicy Bypass .\install.ps1`
+  * Windows operating systems: `$env:INSTALL_URL="https://raw.githubusercontent.com/g2forge/forklift/master/install"; (New-Object System.Net.WebClient).DownloadFile("$env:INSTALL_URL.ps1", "$pwd\install.ps1"); powershell -ExecutionPolicy Bypass .\install.ps1`
 * Run a command from a pallet: `forklift run <warehouse> <pallet> <version> <command-with-arguments>`
 * Upgrade forklift: `forklift upgrade`, will check for a new version of forklift itself and upgrade if appropriate
 * Uninstall forklift: `forklift uninstall` (will also clear out all cached and temporary data)
@@ -70,10 +70,11 @@ You may be interested in the [fl-clicommon](https://github.com/g2forge/fl-clicom
 ## Example 5
 
 Forklift can be used to create self-installing pallets (GitHub repositories or Maven JARs for example).
-The below code will install forklift and then use it to run any forklift command.
+The below code (pick one depending on OS) will install forklift and then use it to run any forklift command.
 
 ```
 bash <(curl -L https://raw.githubusercontent.com/g2forge/forklift/master/install) <ANY FORKLIFT COMMAND>
+$env:INSTALL_URL="https://raw.githubusercontent.com/g2forge/forklift/master/install"; (New-Object System.Net.WebClient).DownloadFile("$env:INSTALL_URL.ps1", "$pwd\install.ps1"); powershell -ExecutionPolicy Bypass .\install.ps1 <ANY FORKLIFT COMMAND>
 ```
 
 You can replace `<ANY FORKLIFT COMMAND>` with `import <warehouse> <pallet> <version>`, and add a `post-import` script to your pallet.
