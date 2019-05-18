@@ -41,6 +41,9 @@ if [ -f "${SMARTGIT_INSTALLEDDIR}/changelog.txt" ]; then
 	fi
 fi
 
+. "${SELF_DIR}/../install-common"
+install unzip unzip
+
 SMARTGIT_MAJOR=$(echo "${SMARTGIT_VERSION}" | sed -e 's/\..*//')
 if [[ ${SMARTGIT_MAJOR} -ge 18 ]]; then
 	SMARTGIT_URL="https://www.syntevo.com/downloads/smartgit/smartgit-win-$(echo "${SMARTGIT_VERSION}" | sed -e 's/\./_/g').zip"
