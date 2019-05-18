@@ -1,0 +1,43 @@
+#!/bin/bash
+set -eu -o pipefail
+
+function help () {
+	echo "$(basename ${0}): Install Java on windows"
+	echo
+	echo "Usage: $(basename ${0})"
+	echo
+}
+
+SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
+SELF=${SELF_DIR}/$(basename ${0})
+
+. ${SELF_DIR}/../../../common/source.bash
+
+if ! which jq > /dev/null 2>&1; then
+	$(cd "$(dirname "${BASH_SOURCE}")" && pwd -P)/install jq
+fi
+
+echo -e "${CFMT_INFO}Installing Java${CFMT_NORMAL}" >&2
+ARCH=$(${COMMON_DIR}/osinfo -a)
+case ${ARCH} in
+	x86)
+		JAVA_ARCH=x32
+		;;
+	x86_64)
+		JAVA_ARCH=x64
+		;;
+	*)
+		fail "Unknown architecture: ${ARCH}"
+		;;
+esac
+JAVA_VERSION=$(curl 'http://jdk.java.net/' | grep 'Ready for use' | sed -e 's/.*\/\([0-9]*\)\/.*/\1/')
+
+INSTALL_TEMPDIR=$(mktemp -d)
+trap "{ rm -rf ${INSTALL_TEMPDIR}; }" EXIT
+echo -e "${CFMT_INFO}Downloading Java ${JAVA_VERSION} ${JAVA_ARCH}${CFMT_NORMAL} (temp dir is ${INSTALL_TEMPDIR})" >&2
+
+JAVA_URL=$(curl "https://api.adoptopenjdk.net/v2/binary/releases/openjdk${JAVA_VERSION}?openjdk_impl=hotspot&os=windows&arch=${JAVA_ARCH}&release=latest" | sed -e 's/Multiple binaries match request: //' | jq -r '.[] | select(.binary_type == "jre") | .installer_link | .')
+pushd "${INSTALL_TEMPDIR}" > /dev/null 2>&1
+	curl -o "java.msi" ${JAVA_URL}
+	msiexec /i java.msi INSTALLLEVEL=3 REINSTALL=ALL REINSTALLMODE=amus /quiet
+popd > /dev/null 2>&1
