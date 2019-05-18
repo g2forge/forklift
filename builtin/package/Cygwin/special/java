@@ -14,7 +14,7 @@ SELF=${SELF_DIR}/$(basename ${0})
 . ${SELF_DIR}/../../../common/source.bash
 
 if ! which jq > /dev/null 2>&1; then
-	$(cd "$(dirname "${BASH_SOURCE}")" && pwd -P)/install jq
+	$(cd "$(dirname "${BASH_SOURCE}")" && pwd -P)/../install jq
 fi
 
 echo -e "${CFMT_INFO}Installing Java${CFMT_NORMAL}" >&2
