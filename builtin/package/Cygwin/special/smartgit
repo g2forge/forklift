@@ -1,0 +1,61 @@
+#!/bin/bash
+set -eu -o pipefail
+
+function help () {
+	echo "$(basename ${0}): Install SmartGit on windows"
+	echo
+	echo "Usage: $(basename ${0}) (<version>)"
+	echo
+}
+
+SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
+SELF=${SELF_DIR}/$(basename ${0})
+
+. ${SELF_DIR}/../../../common/source.bash
+
+args_max 1
+if [[ $# -eq 1 ]]; then
+	case "${1}" in
+		-h|--help|help)
+		help
+		exit 0
+		;;
+		*)
+		SMARTGIT_VERSION="${1}"
+		;;
+	esac
+else
+	SMARTGIT_VERSION=$(curl -L https://www.syntevo.com/smartgit/download/ 2> /dev/null | grep "Download SmartGit" | sed -e 's/.*Download SmartGit \([0-9.]*\).*/\1/')
+	echo -e "${CFMT_INFO}Latest SmartGit is ${SMARTGIT_VERSION}${CFMT_NORMAL}" >&2
+fi
+
+SMARTGIT_INSTALLEDDIR="/cygdrive/c/Program Files (x86)/SmartGit"
+if [ -f "${SMARTGIT_INSTALLEDDIR}/changelog.txt" ]; then
+	SMARTGIT_INSTALLEDVER=$(head -n1 "${SMARTGIT_INSTALLEDDIR}/changelog.txt" | cut -f2 -d' ')
+	
+	if [ "${SMARTGIT_INSTALLEDVER}" != "${SMARTGIT_VERSION}" ] && ${COMMON_DIR}/version isnewer ${SMARTGIT_INSTALLEDVER} ${SMARTGIT_VERSION} > /dev/null 2>&1; then
+		echo -e "${CFMT_INFO}SmartGit ${SMARTGIT_VERSION} is available, installing upgrade${CFMT_NORMAL}" >&2
+	else
+		echo -e "${CFMT_INFO}SmartGit is up to date${CFMT_NORMAL}" >&2
+		exit 0
+	fi
+fi
+
+SMARTGIT_MAJOR=$(echo "${SMARTGIT_VERSION}" | sed -e 's/\..*//')
+if [[ ${SMARTGIT_MAJOR} -ge 18 ]]; then
+	SMARTGIT_URL="https://www.syntevo.com/downloads/smartgit/smartgit-win-$(echo "${SMARTGIT_VERSION}" | sed -e 's/\./_/g').zip"
+else
+	SMARTGIT_URL="https://www.syntevo.com/downloads/smartgit/archive/smartgit-win32-setup-jre-$(echo "${SMARTGIT_VERSION}" | sed -e 's/\./_/g').zip"
+fi
+
+INSTALL_TEMPDIR=$(mktemp -d)
+#trap "{ rm -rf ${INSTALL_TEMPDIR}; }" EXIT
+echo -e "${CFMT_INFO}Downloading SmartGit ${SMARTGIT_VERSION}${CFMT_NORMAL} (temp dir is ${INSTALL_TEMPDIR})" >&2
+
+pushd "${INSTALL_TEMPDIR}" > /dev/null 2>&1
+	curl -L -o "smartgit.zip" "${SMARTGIT_URL}"
+	unzip "smartgit.zip"
+	SMARTGIT_INSTALLER=$(find . -name "*.exe")
+	chmod +x "${SMARTGIT_INSTALLER}"
+	"${SMARTGIT_INSTALLER}" /SP- /SILENT
+popd > /dev/null 2>&1
