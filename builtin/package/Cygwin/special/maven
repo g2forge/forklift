@@ -13,7 +13,7 @@ SELF=${SELF_DIR}/$(basename ${0})
 
 . ${SELF_DIR}/../../../common/source.bash
 
-. "$(dirname "${SELF_DIR}")/../install-common"
+. "${SELF_DIR}/../install-common"
 install java java
 
 SP_NAME="maven"
