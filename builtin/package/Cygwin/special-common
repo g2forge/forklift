@@ -58,9 +58,8 @@ echo "Success"
 pause
 EOF
 
-if ! which unix2dos > /dev/null 2>&1; then
-	$(cd "$(dirname "${BASH_SOURCE}")" && pwd -P)/install dos2unix
-fi
+. "$(dirname "${BASH_SOURCE}")/install-common"
+install unix2dos dos2unix
 unix2dos ${INSTALL_TEMPDIR}/setpath.ps1
 powershell -NoProfile -ExecutionPolicy Bypass -Command "\$p = Start-Process powershell \"-ExecutionPolicy Bypass -Command $(cygpath -w ${INSTALL_TEMPDIR}/setpath.ps1)\" -Verb runAs -PassThru -Wait; Exit \$p.ExitCode"
 

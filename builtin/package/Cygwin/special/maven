@@ -13,6 +13,9 @@ SELF=${SELF_DIR}/$(basename ${0})
 
 . ${SELF_DIR}/../../../common/source.bash
 
+. "${SELF_DIR}/../install-common"
+install java java
+
 SP_NAME="maven"
 SP_TARGET="/cygdrive/c/Program Files/Maven"
 SP_RELATIVE="bin"
