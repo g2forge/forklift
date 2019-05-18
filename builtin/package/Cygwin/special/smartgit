@@ -15,7 +15,7 @@ SELF=${SELF_DIR}/$(basename ${0})
 
 args_max 1
 
-SMARTGIT_LATEST=$(curl -L https://www.syntevo.com/smartgit/download/ 2> /dev/null | grep "Download SmartGit" | sed -e 's/.*Download SmartGit \([0-9.]*\).*/\1/')
+SMARTGIT_LATEST=$(curl -L "https://www.syntevo.com/smartgit/download/" 2> /dev/null | grep "Download SmartGit" | sed -e 's/.*Download SmartGit \([0-9.]*\).*/\1/')
 echo -e "${CFMT_INFO}Latest SmartGit is ${SMARTGIT_VERSION}${CFMT_NORMAL}" >&2
 
 if [[ $# -eq 1 ]]; then

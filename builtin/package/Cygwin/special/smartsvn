@@ -15,7 +15,7 @@ SELF=${SELF_DIR}/$(basename ${0})
 
 args_max 1
 
-SMARTSVN_LATEST=$(curl -L https://www.syntevo.com/smartsvn/download/ 2> /dev/null | grep "Download SmartSVN" | sed -e 's/.*Download SmartSVN \([0-9.]*\).*/\1/')
+SMARTSVN_LATEST=$(curl -L "https://www.smartsvn.com/download/" 2> /dev/null | grep "Download SmartSVN" | sed -e 's/.*Download SmartSVN \([0-9.]*\).*/\1/')
 echo -e "${CFMT_INFO}Latest SmartSVN is ${SMARTSVN_VERSION}${CFMT_NORMAL}" >&2
 
 if [[ $# -eq 1 ]]; then
