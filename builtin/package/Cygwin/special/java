@@ -40,3 +40,5 @@ pushd "${INSTALL_TEMPDIR}" > /dev/null 2>&1
 	curl -L -o "java.msi" "${JAVA_URL}"
 	msiexec /i "$(cygpath -w "${INSTALL_TEMPDIR}/java.msi")" INSTALLLEVEL=3 REINSTALLMODE=amus /passive
 popd > /dev/null 2>&1
+
+echo -e "${CFMT_SUCCESS}Successfully installed Java${CFMT_NORMAL}!" >&2
