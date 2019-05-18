@@ -39,5 +39,5 @@ echo -e "${CFMT_INFO}Downloading Java ${JAVA_VERSION} ${JAVA_ARCH}${CFMT_NORMAL}
 JAVA_URL=$(curl -L "https://api.adoptopenjdk.net/v2/binary/releases/openjdk${JAVA_VERSION}?openjdk_impl=hotspot&os=windows&arch=${JAVA_ARCH}&release=latest" | sed -e 's/Multiple binaries match request: //' | jq -r '.[] | select(.binary_type == "jre") | .installer_link | .')
 pushd "${INSTALL_TEMPDIR}" > /dev/null 2>&1
 	curl -L -o "java.msi" "${JAVA_URL}"
-	msiexec "/i" "$(cygpath -w "${INSTALL_TEMPDIR}/java.msi")" "INSTALLLEVEL=3" "REINSTALL=ALL" "REINSTALLMODE=amus" "/quiet"
+	msiexec /i "$(cygpath -w "${INSTALL_TEMPDIR}/java.msi")" INSTALLLEVEL=3 REINSTALLMODE=amus /passive
 popd > /dev/null 2>&1
