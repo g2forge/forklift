@@ -33,15 +33,9 @@ else
 fi
 
 SMARTGIT_INSTALLEDDIR="/cygdrive/c/Program Files (x86)/SmartGit"
-if [ -f "${SMARTGIT_INSTALLEDDIR}/changelog.txt" ]; then
-	SMARTGIT_INSTALLEDVER=$(head -n1 "${SMARTGIT_INSTALLEDDIR}/changelog.txt" | cut -f2 -d' ')
-	
-	if [ "${SMARTGIT_INSTALLEDVER}" != "${SMARTGIT_VERSION}" ] && ${COMMON_DIR}/version isnewer ${SMARTGIT_INSTALLEDVER} ${SMARTGIT_VERSION} > /dev/null 2>&1; then
-		echo -e "${CFMT_INFO}SmartGit ${SMARTGIT_VERSION} is available, installing upgrade${CFMT_NORMAL}" >&2
-	else
-		echo -e "${CFMT_INFO}SmartGit is up to date${CFMT_NORMAL}" >&2
-		exit 0
-	fi
+if [ -d "${SMARTGIT_INSTALLEDDIR}" ]; then
+	echo -e "${CFMT_INFO}SmartGit is already installed${CFMT_NORMAL}" >&2
+	exit 0
 fi
 
 . "${SELF_DIR}/../install-common"
