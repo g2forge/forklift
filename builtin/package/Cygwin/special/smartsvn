@@ -33,15 +33,9 @@ else
 fi
 
 SMARTSVN_INSTALLEDDIR="/cygdrive/c/Program Files (x86)/SmartSVN"
-if [ -f "${SMARTSVN_INSTALLEDDIR}/changelog.txt" ]; then
-	SMARTSVN_INSTALLEDVER=$(head -n1 "${SMARTSVN_INSTALLEDDIR}/changelog.txt" | cut -f2 -d' ')
-	
-	if [ "${SMARTSVN_INSTALLEDVER}" != "${SMARTSVN_VERSION}" ] && ${COMMON_DIR}/version isnewer ${SMARTSVN_INSTALLEDVER} ${SMARTSVN_VERSION} > /dev/null 2>&1; then
-		echo -e "${CFMT_INFO}SmartSVN ${SMARTSVN_VERSION} is available, installing upgrade${CFMT_NORMAL}" >&2
-	else
-		echo -e "${CFMT_INFO}SmartSVN is up to date${CFMT_NORMAL}" >&2
-		exit 0
-	fi
+if [ -d "${SMARTSVN_INSTALLEDDIR}" ]; then
+	echo -e "${CFMT_INFO}SmartSVN is already installed${CFMT_NORMAL}" >&2
+	exit 0
 fi
 
 . "${SELF_DIR}/../install-common"
