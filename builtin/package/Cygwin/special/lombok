@@ -33,7 +33,7 @@ pushd "${INSTALL_TEMPDIR}" > /dev/null 2>&1
 	curl -L "${URL_DOWNLOAD}" -o "${FILENAME}"
 	
 	echo -e "${CFMT_INFO}Running interactive lombok installer${CFMT_NORMAL}" >&2
-	java -jar "${FILENAME}"
+	powershell -NoProfile -ExecutionPolicy Bypass -Command "\$p = Start-Process powershell \"-ExecutionPolicy Bypass -Command java -jar "${FILENAME}"\" -Verb runAs -PassThru -Wait; Exit \$p.ExitCode"
 popd > /dev/null 2>&1
 
 echo -e "${CFMT_SUCCESS}Successfully installed lombok for Eclipse${CFMT_NORMAL}!" >&2
