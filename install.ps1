@@ -36,6 +36,9 @@ if (-not (Get-Command "bash.exe" -ErrorAction SilentlyContinue)) {
 		[Environment]::SetEnvironmentVariable('Path', "$currentPath;$cygpath", 'Machine');
 		$env:Path = [System.Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path', 'User')	
 	}
+
+	echo "Using windows home directories"	
+	bash -c "if ! grep -q '^db_home:' /etc/nsswitch.conf; then echo 'db_home: windows' >> /etc/nsswitch.conf; fi"
 }
 
 echo "Installing forklift"
