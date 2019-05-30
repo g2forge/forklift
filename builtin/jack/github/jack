@@ -123,6 +123,8 @@ function import () {
 		flscript ${FLGHJACK_POSTIMPORT}
 		popd > /dev/null 2>&1
 		echo -e "${CFMT_SUCCESS}Import successful${CFMT_NORMAL}!" >&2
+	else
+		echo -e "${CFMT_SUCCESS}Import skipped (already imported)${CFMT_NORMAL}!" >&2
 	fi
 }
 function update () {
