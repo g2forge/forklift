@@ -1,0 +1,39 @@
+#!/bin/bash
+set -eu -o pipefail
+
+function help () {
+	echo "$(basename ${0}): Install lombok for Eclipse on windows"
+	echo
+	echo "Usage: $(basename ${0})"
+	echo
+}
+
+SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
+SELF=${SELF_DIR}/$(basename ${0})
+
+. ${SELF_DIR}/../../../common/source.bash
+
+. "${SELF_DIR}/../install-common"
+
+if [ -f "/cygdrive/c/Program Files/eclipse/lombok.jar" ]; then
+	echo -e "${CFMT_INFO}Lombok for Eclipse is already installed${CFMT_NORMAL}" >&2
+	exit 0
+fi
+
+install java java
+
+INSTALL_TEMPDIR=$(mktemp -d)
+trap "{ rm -rf ${INSTALL_TEMPDIR}; }" EXIT
+echo -e "${CFMT_INFO}Downloading lombok${CFMT_NORMAL} (temp dir is ${INSTALL_TEMPDIR})" >&2
+
+pushd "${INSTALL_TEMPDIR}" > /dev/null 2>&1
+	URL_LOMBOK="https://projectlombok.org"
+	URL_DOWNLOAD="${URL_LOMBOK}$(curl -L "${URL_LOMBOK}/download" 2> /dev/null | grep -B1 -F 'Download <span' | head -n1 | sed -e 's/.*href="\([^"]*\)".*/\1/')"
+	FILENAME="$(basename "${URL_DOWNLOAD}")"
+	curl -L "${URL_DOWNLOAD}" -o "${FILENAME}"
+	
+	echo -e "${CFMT_INFO}Running interactive lombok installer${CFMT_NORMAL}" >&2
+	java -jar "${FILENAME}"
+popd > /dev/null 2>&1
+
+echo -e "${CFMT_SUCCESS}Successfully installed lombok for Eclipse${CFMT_NORMAL}!" >&2
