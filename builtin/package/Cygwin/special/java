@@ -13,6 +13,11 @@ SELF=${SELF_DIR}/$(basename ${0})
 
 . ${SELF_DIR}/../../../common/source.bash
 
+if which java 2> /dev/null; then
+	echo -e "${CFMT_INFO}Java is already installed${CFMT_NORMAL}" >&2
+	exit 0
+fi
+
 . "${SELF_DIR}/../install-common"
 install jq jq
 
