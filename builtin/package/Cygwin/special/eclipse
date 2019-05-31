@@ -20,15 +20,18 @@ SP_NAME="Eclipse"
 SP_TARGET="/cygdrive/c/Program Files/eclipse"
 SP_RELATIVE=""
 
+URL_ECLIPSE="https://www.eclipse.org"
+
 # Accepts the temporary directory as an argument, returns the version number for the most recent version we can download on stdout
 function sp_downloadversion() {
-	echo "current"
+	curl -L "${URL_ECLIPSE}/downloads/" 2>/dev/null | grep -F 'Get <strong>Eclipse IDE ' | sed -e 's/.*Eclipse IDE \([^<]*\).*/\1/' -e 's/&#8209;/-/'
 }
 # Fails if the program is not installed, otherwise returns install directory and installed version as two lines on stdout
 function sp_installedversion() {
 	if WHICH_OUTPUT=$(which eclipse 2> /dev/null); then
-		dirname "$(dirname "${WHICH_OUTPUT}")"
-		echo "current"
+		ECLIPSEDIR="$(dirname "${WHICH_OUTPUT}")"
+		echo "${ECLIPSEDIR}"
+	 	cat "$(find "${ECLIPSEDIR}" -name about.mappings | grep -F 'org.eclipse.platform')" | grep '^1=' | sed -e 's/1=//'
 	else
 		exit 1
 	fi
@@ -36,7 +39,6 @@ function sp_installedversion() {
 # Accepts the temporary directory as an argument, downloads the most recent version, and creates the directory structure that should be installed. Returns the absolute path to that directory on stdout
 function sp_downloadsource() {
 	pushd "${1}" > /dev/null 2>&1
-		URL_ECLIPSE="https://www.eclipse.org"
 		URL_DOWNLOADS="${URL_ECLIPSE}$(curl -L "${URL_ECLIPSE}/downloads/" 2>/dev/null | grep -F '>Download Packages</a>' | cut -f1 -d'|' | sed -e 's/.*href="\([^"]*\)".*/\1/')"
 		URL_PACKAGE="${URL_ECLIPSE}$(curl -L "${URL_DOWNLOADS}" 2>/dev/null | grep -F '>Eclipse IDE for Java Developers</a>' | sed -e 's/.*href="\([^"]*\)".*/\1/')"
 		URL_DOWNLOAD="https:$(curl -L "${URL_PACKAGE}" 2>/dev/null | grep -F '>Windows 64-bit</a>' | sed -e 's/.*href="\([^"]*\)".*/\1/')"
