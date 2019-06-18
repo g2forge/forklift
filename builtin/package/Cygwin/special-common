@@ -46,8 +46,18 @@ cat > ${INSTALL_TEMPDIR}/setpath.ps1 <<EOF
 \$ErrorActionPreference = "Stop"
 \$source = '$(cygpath -w "${SP_SOURCE}")'
 \$target = '$(cygpath -w "${SP_TARGET}")'
-echo "Removing old ${SP_NAME} install from \$target"
-Remove-Item -ErrorAction Ignore -Force -Recurse "\$target"
+if ((Join-Path "c:\\Program Files" "") -eq (Join-Path "\$target" "")) {
+	echo "Will not remove \$target (program files)"
+} elseif ((Join-Path "c:\\Program Files (x86)" "") -eq (Join-Path "\$target" "")) {
+	echo "Will not remove \$target (program files)"
+} elseif ((Join-Path "c:\\Windows" "") -eq (Join-Path "\$target" "")) {
+	echo "Will not remove \$target (windows install directory)"
+} elseif ((Join-Path "c:\\Users" "") -eq (Join-Path "\$target" "")) {
+	echo "Will not remove \$target (windows users directory)"
+} else {
+	echo "Removing old ${SP_NAME} install from \$target"
+	Remove-Item -ErrorAction Ignore -Force -Recurse "\$target"
+}
 echo "Copying ${SP_NAME} to \$target"
 Copy-Item -Recurse -Force "\$source" "\$target"
 

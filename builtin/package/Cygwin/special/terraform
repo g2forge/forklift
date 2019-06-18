@@ -1,0 +1,62 @@
+#!/bin/bash
+set -eu -o pipefail
+
+function help () {
+	echo "$(basename ${0}): Install terraform on windows"
+	echo
+	echo "Usage: $(basename ${0})"
+	echo
+}
+
+SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
+SELF=${SELF_DIR}/$(basename ${0})
+
+. ${SELF_DIR}/../../../common/source.bash
+
+. "${SELF_DIR}/../install-common"
+install java java
+
+SP_NAME="terraform"
+SP_TARGET="/cygdrive/c/Program Files/Terraform"
+SP_RELATIVE=""
+
+# Accepts the temporary directory as an argument, returns the version number for the most recent version we can download on stdout
+function sp_downloadversion() {
+	curl https://www.terraform.io/downloads.html 2> /dev/null | grep -A1 "latest version of Terraform" | tail -n 1 | sed -e 's/.*(\(.*\)).*/\1/'
+}
+# Fails if the program is not installed, otherwise returns install directory and installed version as two lines on stdout
+function sp_installedversion() {
+	if WHICH_OUTPUT=$(which terraform 2> /dev/null); then
+		dirname "$(dirname "${WHICH_OUTPUT}")"
+		terraform --version | sed -e 's/Terraform v//' | head  -n1
+	else
+		exit 1
+	fi
+}
+# Accepts the temporary directory as an argument, downloads the most recent version, and creates the directory structure that should be installed. Returns the absolute path to that directory on stdout
+function sp_downloadsource() {
+	ARCH=$(${COMMON_DIR}/osinfo -a)
+	case ${ARCH} in
+		x86)
+			TF_ARCH=32-bit
+			;;
+		x86_64)
+			TF_ARCH=64-bit
+			;;
+		*)
+			fail "Unknown architecture: ${ARCH}"
+			;;
+	esac
+	URL=$(curl https://www.terraform.io/downloads.html 2> /dev/null | grep -A10 ">Windows<" | grep ">${TF_ARCH}<" | head -n1 | sed -e 's/.*href="\([^"]*\)".*/\1/')
+	
+	pushd "${1}" > /dev/null 2>&1	
+		curl -o "terraform.zip" ${URL}
+		unzip terraform.zip > /dev/null 2>&1 
+		mkdir -p terraform
+		mv terraform.exe terraform/
+		cd terraform
+		pwd -P
+	popd > /dev/null 2>&1
+}
+
+. ${SELF_DIR}/../special-common
