@@ -5,7 +5,9 @@
 # Functions
 #	sp_downloadversion(): Accepts the temporary directory as an argument, returns the version number for the most recent version we can download on stdout
 #	sp_installedversion(): Fails if the program is not installed, otherwise returns install directory and installed version as two lines on stdout
-#	sp_downloadsource(): Accepts the temporary directory as an argument, downloads the most recent version, and creates the directory structure that should be installed. Returns the absolute path to that directory on stdout
+#	ONE of the TWO should be defined
+#		sp_downloadsource(): Accepts the temporary directory as an argument, downloads the most recent version, and creates the directory structure that should be installed. Returns the absolute path to that directory on stdout
+#		sp_install(): Accepts the temporary directory as an argument, downloads the most recent version, and installs it
 
 INSTALL_TEMPDIR=$(mktemp -d)
 trap "{ rm -rf ${INSTALL_TEMPDIR}; }" EXIT
@@ -33,16 +35,19 @@ if INSTALLED_OUTPUT=$(sp_installedversion); then
 fi
 
 echo -e "${CFMT_INFO}Downloading ${SP_NAME} ${DOWNLOAD_VERSION}${CFMT_NORMAL}" >&2
-SP_SOURCE=$(sp_downloadsource "${INSTALL_TEMPDIR}")
-chmod -R a+r "${SP_SOURCE}"
-
-echo -e "${CFMT_INFO}Installing ${SP_NAME} to $(cygpath -w "${SP_TARGET}")${CFMT_NORMAL} (and adding to windows path)" >&2
-if [ "" == "${SP_RELATIVE}" ]; then
-	WIN_RELATIVE=""
+if type sp_install > /dev/null 2>&1; then
+	sp_install "${INSTALL_TEMPDIR}"
 else
-	WIN_RELATIVE="\\$(cygpath -w "${SP_RELATIVE}")"
-fi
-cat > ${INSTALL_TEMPDIR}/setpath.ps1 <<EOF
+	SP_SOURCE=$(sp_downloadsource "${INSTALL_TEMPDIR}")
+	chmod -R a+r "${SP_SOURCE}"
+	
+	echo -e "${CFMT_INFO}Installing ${SP_NAME} to $(cygpath -w "${SP_TARGET}")${CFMT_NORMAL} (and adding to windows path)" >&2
+	if [ "" == "${SP_RELATIVE}" ]; then
+		WIN_RELATIVE=""
+	else
+		WIN_RELATIVE="\\$(cygpath -w "${SP_RELATIVE}")"
+	fi
+	cat > ${INSTALL_TEMPDIR}/setpath.ps1 <<EOF
 \$ErrorActionPreference = "Stop"
 \$source = '$(cygpath -w "${SP_SOURCE}")'
 \$target = '$(cygpath -w "${SP_TARGET}")'
@@ -72,10 +77,11 @@ if ((\$currentPath).Contains(\$target)) {
 echo "Success"
 pause
 EOF
-
-. "$(dirname "${BASH_SOURCE}")/install-common"
-install unix2dos dos2unix
-unix2dos ${INSTALL_TEMPDIR}/setpath.ps1
-powershell -NoProfile -ExecutionPolicy Bypass -Command "\$p = Start-Process powershell \"-ExecutionPolicy Bypass -Command $(cygpath -w ${INSTALL_TEMPDIR}/setpath.ps1)\" -Verb runAs -PassThru -Wait; Exit \$p.ExitCode"
+	
+	. "$(dirname "${BASH_SOURCE}")/install-common"
+	install unix2dos dos2unix
+	unix2dos ${INSTALL_TEMPDIR}/setpath.ps1
+	powershell -NoProfile -ExecutionPolicy Bypass -Command "\$p = Start-Process powershell \"-ExecutionPolicy Bypass -Command $(cygpath -w ${INSTALL_TEMPDIR}/setpath.ps1)\" -Verb runAs -PassThru -Wait; Exit \$p.ExitCode"
+fi
 
 echo -e "${CFMT_SUCCESS}Successfully installed ${SP_NAME}${CFMT_NORMAL}!" >&2

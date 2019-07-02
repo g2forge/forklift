@@ -1,0 +1,46 @@
+#!/bin/bash
+set -eu -o pipefail
+
+function help () {
+	echo "$(basename ${0}): Install awscli on windows"
+	echo
+	echo "Usage: $(basename ${0})"
+	echo
+}
+
+SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
+SELF=${SELF_DIR}/$(basename ${0})
+
+. ${SELF_DIR}/../../../common/source.bash
+
+. "${SELF_DIR}/../install-common"
+install java java
+
+SP_NAME="awscli"
+SP_TARGET="/cygdrive/c/Program Files/AWS CLI"
+SP_RELATIVE=""
+
+# Accepts the temporary directory as an argument, returns the version number for the most recent version we can download on stdout
+function sp_downloadversion() {
+	git ls-remote --tags https://github.com/aws/aws-cli.git | sed -nE 's#.*refs/tags/(v?[0-9]+(\.[0-9]+)*)$#\1#p' | sort -Vr | head -n 1
+}
+# Fails if the program is not installed, otherwise returns install directory and installed version as two lines on stdout
+function sp_installedversion() {
+	if WHICH_OUTPUT=$(which aws 2> /dev/null); then
+		dirname "$(dirname "${WHICH_OUTPUT}")"
+		aws --version | sed -e 's/aws-cli\/\([^ ]*\) .*/\1/'
+	else
+		exit 1
+	fi
+}
+# Accepts the temporary directory as an argument, downloads the most recent version, and installs it
+function sp_install() {
+	pushd "${1}" > /dev/null 2>&1
+		AWSCLI_INSTALLER="AWSCLISetup.exe"
+		curl -o "${AWSCLI_INSTALLER}" "https://s3.amazonaws.com/aws-cli/${AWSCLI_INSTALLER}"
+		chmod +x "${AWSCLI_INSTALLER}"
+		"./${AWSCLI_INSTALLER}"
+	popd > /dev/null 2>&1
+}
+
+. ${SELF_DIR}/../special-common
