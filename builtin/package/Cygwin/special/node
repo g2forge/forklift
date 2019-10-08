@@ -1,0 +1,58 @@
+#!/bin/bash
+set -eu -o pipefail
+
+function help () {
+	echo "$(basename ${0}): Install node on windows"
+	echo
+	echo "Usage: $(basename ${0})"
+	echo
+}
+
+SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
+SELF=${SELF_DIR}/$(basename ${0})
+
+. ${SELF_DIR}/../../../common/source.bash
+
+. "${SELF_DIR}/../install-common"
+
+SP_NAME="node"
+SP_TARGET="/cygdrive/c/Program Files/nodejs"
+
+# Accepts the temporary directory as an argument, returns the version number for the most recent version we can download on stdout
+function sp_downloadversion() {
+	ARCH=$(${COMMON_DIR}/osinfo -a)
+	case ${ARCH} in
+		x86)
+			NODE_ARCH=x86
+			;;
+		x86_64)
+			NODE_ARCH=x64
+			;;
+		*)
+			fail "Unknown architecture: ${ARCH}"
+			;;
+	esac
+
+	LINE=$(curl https://nodejs.org/en/download/ 2> /dev/null | grep -F -- "-${NODE_ARCH}.msi\">")
+	echo "${LINE}" | sed -e 's#.*href="\([^"]*\)".*#\1#' > "${1}/url"
+	echo "${LINE}" | sed -e 's#.*dist/v\([^/]*\)/node-v.*#\1#'
+}
+# Fails if the program is not installed, otherwise returns install directory and installed version as two lines on stdout
+function sp_installedversion() {
+	if WHICH_OUTPUT=$(which node 2> /dev/null); then
+		dirname "$(dirname "${WHICH_OUTPUT}")"
+		node -v
+	else
+		exit 1
+	fi
+}
+# Accepts the temporary directory as an argument, downloads the most recent version, and installs it
+function sp_install() {
+	MSI="node.msi"
+	pushd "${1}" > /dev/null 2>&1
+		curl -o "${MSI}" $(cat "url")
+		powershell -NoProfile -ExecutionPolicy Bypass -Command "\$p = Start-Process powershell \"-ExecutionPolicy Bypass -Command "$(cygpath -aw "$(pwd -P)/${MSI}")"\" -Verb runAs -PassThru -Wait; Exit \$p.ExitCode"
+	popd > /dev/null 2>&1
+}
+
+. ${SELF_DIR}/../special-common

@@ -1,16 +1,16 @@
 # Environment variables
 #	SP_NAME: The human readable name of the program we're installing (e.g. "maven")
 #	SP_TARGET: the cygpath to install to (e.g. "/cygdrive/c/Program Files/maven")
-#	SP_RELATIVE: the cygpath from the target to directory within it containing the executable (e.g. "bin")
+#	SP_RELATIVE: the cygpath from the target to directory within it containing the executable (e.g. "bin"), this is not required if you use the sp_install function (See below)
 # Functions
-#	sp_downloadversion(): Accepts the temporary directory as an argument, returns the version number for the most recent version we can download on stdout
+#	sp_downloadversion(): Accepts the temporary directory as an argument, returns the version number for the most recent version we can download on stdout (semver format, with the 'v' prefix optional)
 #	sp_installedversion(): Fails if the program is not installed, otherwise returns install directory and installed version as two lines on stdout
 #	ONE of the TWO should be defined
 #		sp_downloadsource(): Accepts the temporary directory as an argument, downloads the most recent version, and creates the directory structure that should be installed. Returns the absolute path to that directory on stdout
 #		sp_install(): Accepts the temporary directory as an argument, downloads the most recent version, and installs it
 
 INSTALL_TEMPDIR=$(mktemp -d)
-trap "{ rm -rf ${INSTALL_TEMPDIR}; }" EXIT
+#trap "{ rm -rf ${INSTALL_TEMPDIR}; }" EXIT
 echo -e "${CFMT_INFO}Installing ${SP_NAME}${CFMT_NORMAL} (temp dir is ${INSTALL_TEMPDIR})" >&2
 
 echo -e "${CFMT_INFO}Getting ${SP_NAME} download info${CFMT_NORMAL}" >&2
@@ -84,4 +84,5 @@ EOF
 	powershell -NoProfile -ExecutionPolicy Bypass -Command "\$p = Start-Process powershell \"-ExecutionPolicy Bypass -Command $(cygpath -w ${INSTALL_TEMPDIR}/setpath.ps1)\" -Verb runAs -PassThru -Wait; Exit \$p.ExitCode"
 fi
 
+reload_path
 echo -e "${CFMT_SUCCESS}Successfully installed ${SP_NAME}${CFMT_NORMAL}!" >&2

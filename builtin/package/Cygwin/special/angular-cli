@@ -1,0 +1,22 @@
+#!/bin/bash
+set -eu -o pipefail
+
+function help () {
+	echo "$(basename ${0}): Install angular-cli on windows"
+	echo
+	echo "Usage: $(basename ${0})"
+	echo
+}
+
+SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
+SELF=${SELF_DIR}/$(basename ${0})
+
+. ${SELF_DIR}/../../../common/source.bash
+
+. "${SELF_DIR}/../install-common"
+install node node
+
+echo -e "${CFMT_INFO}Installing angular-cli using npm${CFMT_NORMAL}" >&2
+npm install -g @angular/cli
+
+echo -e "${CFMT_SUCCESS}Successfully installed angular-cli${CFMT_NORMAL}!" >&2

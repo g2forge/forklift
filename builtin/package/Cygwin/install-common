@@ -3,3 +3,9 @@ function install () {
 		$(cd "$(dirname "${BASH_SOURCE}")" && pwd -P)/install "${2}"
 	fi
 }
+
+function reload_path () {
+	export PATH="$(cygpath -pu "$(powershell -C "[System.Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path', 'User')")")"
+}
+
+reload_path
