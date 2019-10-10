@@ -1,0 +1,30 @@
+#!/bin/bash
+set -eu -o pipefail
+
+function help () {
+	echo "$(basename ${0}): Install packages on OSX"
+	echo
+	echo "Usage: $(basename ${0}) <package>*"
+	echo
+}
+
+SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
+SELF=${SELF_DIR}/$(basename ${0})
+
+. ${SELF_DIR}/../../common/source.bash
+
+# Note that there can be more than one package to install...
+args_min 1
+
+if ! which brew &> /dev/null; then
+	ho -e "${CFMT_INFO}Installing homebrew for the first time${CFMT_NORMAL}" >&2
+	/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+fi
+
+echo -e "${CFMT_INFO}Updating brew${CFMT_NORMAL}" >&2
+brew update
+
+echo -e "${CFMT_INFO}Installing ${@} using brew${CFMT_NORMAL}" >&2
+brew install ${@} 	
+
+echo -e "${CFMT_SUCCESS}Installed ${@}${CFMT_NORMAL}" >&2
