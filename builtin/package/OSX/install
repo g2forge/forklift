@@ -17,7 +17,7 @@ SELF=${SELF_DIR}/$(basename ${0})
 args_min 1
 
 if ! which brew &> /dev/null; then
-	ho -e "${CFMT_INFO}Installing homebrew for the first time${CFMT_NORMAL}" >&2
+	echo -e "${CFMT_INFO}Installing homebrew for the first time${CFMT_NORMAL}" >&2
 	/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 fi
 
