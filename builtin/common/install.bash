@@ -1,5 +1,9 @@
 function install_force () {
-	echo install ${PACKAGE}
+	if [[ "${INSTALL_TEST}" = "1" ]]; then
+		echo install ${PACKAGE}
+	else
+		${COMMON_DIR}/install ${PACKAGE}
+	fi
 }
 	
 function install () {
