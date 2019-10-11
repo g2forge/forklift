@@ -1,4 +1,11 @@
 function install_force () {
+	set +u
+	if [ -z ${INSTALL_TEST+x} ]; then
+		set -u
+		INSTALL_TEST=0
+	fi
+	set -u
+	
 	if [[ "${INSTALL_TEST}" = "1" ]]; then
 		echo install ${PACKAGE}
 	else
