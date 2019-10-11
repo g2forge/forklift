@@ -16,3 +16,19 @@ load ../install
 	INSTALL_NATIVE=1 run install powershell
 	[ "$output" = "install powershell" ]
 }
+
+@test "install_scripted" {
+	INSTALL_NATIVE=1 run install git
+	[ "$output" = "" ]
+}
+
+@test "git_command" {
+	run ${BATS_TEST_DIRNAME}/../packages/git --command
+	[ "$status" -eq 0 ]
+	[ "$output" = "git" ]
+}
+
+@test "git_test" {
+	run ${BATS_TEST_DIRNAME}/../packages/git --test
+	[ "$status" -eq 0 ]
+}

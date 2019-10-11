@@ -1,0 +1,32 @@
+#!/bin/bash
+set -eu -o pipefail
+
+function help () {
+	echo "$(basename ${0}): Check whether the $(basename ${0}) package is properly installed"
+	echo
+	echo "Usage: $(basename ${0})"
+	echo -e "\tcommands:"
+	echo -e "\t\t--help: Display this command line help"
+	echo -e "\t\t--command: Print the command to be used as an argument to 'which'"
+	echo -e "\t\t--test: Test if the package is properly installed, fail if it needs to be installed"
+	echo
+}
+
+SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
+SELF=${SELF_DIR}/$(basename ${0})
+
+if [[ $# -ge 1 ]]; then
+	COMMAND="${1}"
+	case ${COMMAND} in
+		-h|--help|help)
+		help
+		exit 0
+		;;
+		-c|--command)
+		basename "${0}"
+		;;
+		-t|--test)
+		"$(basename "${0}")" --version
+		;;
+	esac
+fi
