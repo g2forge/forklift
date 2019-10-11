@@ -15,7 +15,7 @@ function help () {
 SELF_DIR=$(cd $(dirname ${0}) && pwd -P)
 SELF=${SELF_DIR}/$(basename ${0})
 
-ACTUAL_COMMAND="$(basename "${0}")"
+ACTUAL_COMMAND="mvn"
 
 if [[ $# -eq 1 ]]; then
 	COMMAND="${1}"

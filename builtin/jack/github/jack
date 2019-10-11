@@ -36,16 +36,6 @@ function flscript () {
 	[[ ${CHDIR} -eq 0 ]] || popd > /dev/null 2>&1
 }
 
-function install () {
-	COMMAND=${1}
-	PACKAGE=${2}
-	if ! which ${COMMAND} > /dev/null 2>&1; then
-		${COMMON_DIR}/install ${PACKAGE}
-	elif [[ $(which ${COMMAND}) = *"/cygdrive/"* ]]; then
-		${COMMON_DIR}/install ${PACKAGE}
-	fi
-}
-
 args_min 1
 COMMAND="${1}"
 
@@ -90,7 +80,7 @@ function verify () {
 function import () {
 	if [ ! -d ${CACHE_DIR} ]; then
 		verify
-		install git git
+		INSTALL_NATIVE=1 install git
 		
 		echo -e "${CFMT_INFO}Checking protocols for ${WAREHOUSE}${CFMT_NORMAL}" >&2
 		GHHOST=$(warehouse2host)
