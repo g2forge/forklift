@@ -17,12 +17,8 @@ function install () {
 	fi
 	
 	if (! which ${COMMAND} > /dev/null 2>&1) || ([[ "${INSTALL_NATIVE}" = "1" ]] && [[ $(which ${COMMAND}) = *"/cygdrive/"* ]]); then
-		if [ -x "${PACKAGE_FILE}" ]; then
-			if ! "${PACKAGE_FILE}" --test > /dev/null 2>&1; then
-				PACKAGE="${PACKAGE}" install_force
-			fi
-		else
-			PACKAGE="${PACKAGE}" install_force
-		fi
+		PACKAGE="${PACKAGE}" install_force
+	elif [ -x "${PACKAGE_FILE}" ] && (! "${PACKAGE_FILE}" --test > /dev/null 2>&1); then
+		PACKAGE="${PACKAGE}" install_force
 	fi
 }
