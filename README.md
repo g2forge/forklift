@@ -24,12 +24,12 @@ For more commands, please see the command line help by running `forklift --help`
 To run [BATS](https://github.com/sstephenson/bats) on `tests.bats` one might run:
 
 ```
-forklift run com.github sstephenson/bats v0.4.0 bin/bats tests.bats
+forklift run com.github bats-core/bats-core v1.1.0 bin/bats tests.bats
 ```
 
-This will import the [`sstephenson/bats`](https://github.com/sstephenson/bats) pallet from github if it has not already been imported.
+This will import the [`bats-core/bats-core`](https://github.com/bats-core/bats-core) pallet from github if it has not already been imported.
 Then it will run the `bin/bats` script in that pallet with the aruments `tests.bats`. 
-Note that version `v0.4.0` is the latest [release](https://github.com/sstephenson/bats/releases) at the time of this writing.
+Note that version `v1.1.0` is the latest [release](https://github.com/bats-core/bats-core/releases) at the time of this writing.
 
 ## Example 2
 

@@ -46,23 +46,6 @@ function flscript () {
 	fi
 }
 
-function install_any () {
-	COMMAND=${1}
-	PACKAGE=${2}
-	if ! which ${COMMAND} > /dev/null 2>&1; then
-		${COMMON_DIR}/install ${PACKAGE}
-	fi
-}
-function install_native () {
-	COMMAND=${1}
-	PACKAGE=${2}
-	if ! which ${COMMAND} > /dev/null 2>&1; then
-		${COMMON_DIR}/install ${PACKAGE}
-	elif [[ $(which ${COMMAND}) = *"/cygdrive/"* ]]; then
-		${COMMON_DIR}/install ${PACKAGE}
-	fi
-}
-
 args_min 1
 COMMAND="${1}"
 
@@ -91,7 +74,7 @@ function verify () {
 }
 function import () {
 	verify
-	install_any mvn maven
+	INSTALL_NATIVE=0 install maven
 	path
 	if [ ! -e ${MVNPATH} ]; then
 		mvn dependency:get "-DgroupId=${MVNGROUP}" "-DartifactId=${MVNARTIFACT}" "-Dversion=${MVNVERSION}" >&2
@@ -119,12 +102,12 @@ case ${COMMAND} in
 	;;
 	run)
 	import
-	install_native unzip unzip
+	INSTALL_NATIVE=1 install unzip
 	MVNGROUP="${MVNGROUP}" MVNARTIFACT="${MVNARTIFACT}" MVNVERSION="${MVNVERSION}" CMDPRINT=0 MVNPATH=${MVNPATH} ${SELF_DIR}/mvn-run ${@}
 	;;
 	command)
 	import
-	install_native unzip unzip
+	INSTALL_NATIVE=1 install unzip
 	MVNGROUP="${MVNGROUP}" MVNARTIFACT="${MVNARTIFACT}" MVNVERSION="${MVNVERSION}" CMDPRINT=1 MVNPATH=${MVNPATH} ${SELF_DIR}/mvn-run ${@}
 	;;
 	update)

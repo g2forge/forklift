@@ -7,3 +7,4 @@ COMMON_DIR="${SRC_SELF_DIR}"
 . ${SRC_SELF_DIR}/config.bash
 . ${SRC_SELF_DIR}/consoleformat.bash
 . ${SRC_SELF_DIR}/util.bash
+. ${SRC_SELF_DIR}/install.bash

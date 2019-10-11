@@ -3,7 +3,7 @@ PALLETTEST_WAREHOUSE="${FL_WAREHOUSE}"
 PALLETTEST_VERSION="pallet-test"
 
 function jack () {
-	run ${BATS_TEST_DIRNAME}/../jack ${@}
+	run ${BATS_TEST_DIRNAME}/../jack ${@} 2> /dev/null
 }
 
 @test "no arguments" {
@@ -24,7 +24,7 @@ function jack () {
 @test "path" {
 	jack path com.github ${BATS_WAREHOUSE} ${BATS_VERSION}
 	[ "$status" -eq 0 ]
-	[ "$(basename $output)" = "${BATS_VERSION}" ]
+	[ "$(basename "${lines[-1]}")" = "${BATS_VERSION}" ]
 }
 
 @test "update" {
@@ -35,7 +35,7 @@ function jack () {
 @test "scripts" {
 	run echo $(${BATS_TEST_DIRNAME}/../jack path com.github ${PALLETTEST_WAREHOUSE} ${PALLETTEST_VERSION} 2>/dev/null)
 	[ "$status" -eq 0 ]
-	[ "$(basename $output)" = "${PALLETTEST_VERSION}" ]
+	[ "$(basename "${lines[-1]}")" = "${PALLETTEST_VERSION}" ]
 	
 	run ~/.forklift/bin/forklift-test
 	[ "$status" -eq 0 ]
