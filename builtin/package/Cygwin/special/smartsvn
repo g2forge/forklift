@@ -15,7 +15,8 @@ SELF=${SELF_DIR}/$(basename ${0})
 
 args_max 1
 
-SMARTSVN_LATEST=$(curl -L "https://www.smartsvn.com/download/" 2> /dev/null | grep "Download SmartSVN" | sed -e 's/.*Download SmartSVN \([0-9.]*\).*/\1/')
+SMARTSVN_APPROX=$(curl -L "https://www.smartsvn.com/download/" 2> /dev/null | grep "Download SmartSVN" | sed -e 's/.*Download SmartSVN \([0-9.]*\).*/\1/')
+SMARTSVN_LATEST=$(curl -L "https://www.smartsvn.com/download/" 2> /dev/null | grep "Version ${SMARTSVN_APPROX}"| sed -e 's/.*Version \([0-9.]*\).*/\1/')
 echo -e "${CFMT_INFO}Latest SmartSVN is ${SMARTSVN_LATEST}${CFMT_NORMAL}" >&2
 
 if [[ $# -eq 1 ]]; then
@@ -32,11 +33,13 @@ else
 	SMARTSVN_VERSION="${SMARTSVN_LATEST}"
 fi
 
-SMARTSVN_INSTALLEDDIR="/cygdrive/c/Program Files (x86)/SmartSVN"
-if [ -d "${SMARTSVN_INSTALLEDDIR}" ]; then
-	echo -e "${CFMT_INFO}SmartSVN is already installed${CFMT_NORMAL}" >&2
-	exit 0
-fi
+SMARTSVN_INSTALLEDDIRS=("/cygdrive/c/Program Files (x86)/SmartSVN" "/cygdrive/c/Program Files/SmartSVN")
+for SMARTSVN_INSTALLEDDIR in "${SMARTSVN_INSTALLEDDIRS[@]}"; do
+	if [ -d "${SMARTSVN_INSTALLEDDIR}" ]; then
+		echo -e "${CFMT_INFO}SmartSVN is already installed${CFMT_NORMAL}" >&2
+		exit 0
+	fi
+done
 
 . "${SELF_DIR}/../install-common"
 install unzip unzip
