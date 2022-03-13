@@ -6,6 +6,7 @@ function install () {
 
 function reload_path () {
 	export PATH="$(cygpath -pu "$(powershell -C "[System.Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path', 'User')")")"
+	. /etc/profile
 }
 
 reload_path
