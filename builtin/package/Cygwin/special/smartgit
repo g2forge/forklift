@@ -15,7 +15,8 @@ SELF=${SELF_DIR}/$(basename ${0})
 
 args_max 1
 
-SMARTGIT_LATEST=$(curl -L "https://www.syntevo.com/smartgit/download/" 2> /dev/null | grep "Download SmartGit" | sed -e 's/.*Download SmartGit \([0-9.]*\).*/\1/')
+SMARTGIT_APPROX=$(curl -L "https://www.syntevo.com/smartgit/download/" 2> /dev/null | grep "Download SmartGit" | sed -e 's/.*Download SmartGit \([0-9.]*\).*/\1/')
+SMARTGIT_LATEST=$(curl -L "https://www.syntevo.com/smartgit/download/" 2> /dev/null | grep "Version ${SMARTGIT_APPROX}"| sed -e 's/.*Version \([0-9.]*\).*/\1/')
 echo -e "${CFMT_INFO}Latest SmartGit is ${SMARTGIT_LATEST}${CFMT_NORMAL}" >&2
 
 if [[ $# -eq 1 ]]; then
@@ -32,11 +33,13 @@ else
 	SMARTGIT_VERSION="${SMARTGIT_LATEST}"
 fi
 
-SMARTGIT_INSTALLEDDIR="/cygdrive/c/Program Files (x86)/SmartGit"
-if [ -d "${SMARTGIT_INSTALLEDDIR}" ]; then
-	echo -e "${CFMT_INFO}SmartGit is already installed${CFMT_NORMAL}" >&2
-	exit 0
-fi
+SMARTGIT_INSTALLEDDIRS=("/cygdrive/c/Program Files (x86)/SmartGit" "/cygdrive/c/Program Files/SmartGit")
+for SMARTGIT_INSTALLEDDIR in "${SMARTGIT_INSTALLEDDIRS[@]}"; do
+	if [ -d "${SMARTGIT_INSTALLEDDIR}" ]; then
+		echo -e "${CFMT_INFO}SmartGit is already installed${CFMT_NORMAL}" >&2
+		exit 0
+	fi
+done
 
 . "${SELF_DIR}/../install-common"
 install unzip unzip
