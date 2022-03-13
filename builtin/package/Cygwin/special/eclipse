@@ -41,7 +41,7 @@ function sp_downloadsource() {
 	pushd "${1}" > /dev/null 2>&1
 		URL_DOWNLOADS="${URL_ECLIPSE}$(curl -L "${URL_ECLIPSE}/downloads/" 2>/dev/null | grep -F '>Download Packages</a>' | cut -f1 -d'|' | sed -e 's/.*href="\([^"]*\)".*/\1/')"
 		URL_PACKAGE="${URL_ECLIPSE}$(curl -L "${URL_DOWNLOADS}" 2>/dev/null | grep -F '>Eclipse IDE for Java Developers</a>' | sed -e 's/.*href="\([^"]*\)".*/\1/')"
-		URL_DOWNLOAD="https:$(curl -L "${URL_PACKAGE}" 2>/dev/null | grep -F '>Windows 64-bit</a>' | sed -e 's/.*href="\([^"]*\)".*/\1/')"
+		URL_DOWNLOAD="https:$(curl -L "${URL_PACKAGE}" 2>/dev/null | grep -F "windows-64bit" -A 1 | grep -F '>x86_64</a>' | sed -e 's/.*href="\([^"]*\)".*/\1/')"
 		URL_MIRROR="${URL_ECLIPSE}/downloads/$(curl -L "${URL_DOWNLOAD}" 2> /dev/null | grep -F '>File:<' | sed -e 's/<\/a>.*//' | sed -e 's/.*href="\([^"]*\)".*/\1/')"
 		URL_ACTUAL="$(curl -L "${URL_MIRROR}" 2> /dev/null | grep -F 'click here' | sed -e 's/.*href="\([^"]*\)".*/\1/')"
 		
