@@ -34,13 +34,14 @@ case ${ARCH} in
 		fail "Unknown architecture: ${ARCH}"
 		;;
 esac
-JAVA_VERSION=$(curl -L 'http://jdk.java.net/' | grep 'Ready for use' | sed -e 's/.*\/\([0-9]*\)\/.*/\1/')
+JAVA_VERSION="11"
+JAVA_IMAGE_TYPE="jdk"
 
 INSTALL_TEMPDIR=$(mktemp -d)
 trap "{ rm -rf ${INSTALL_TEMPDIR}; }" EXIT
 echo -e "${CFMT_INFO}Downloading Java ${JAVA_VERSION} ${JAVA_ARCH}${CFMT_NORMAL} (temp dir is ${INSTALL_TEMPDIR})" >&2
 
-JAVA_URL=$(curl -L "https://api.adoptopenjdk.net/v2/binary/releases/openjdk${JAVA_VERSION}?openjdk_impl=hotspot&os=windows&arch=${JAVA_ARCH}&release=latest" | sed -e 's/Multiple binaries match request: //' | jq -r '.[] | select(.binary_type == "jre") | .installer_link | .')
+JAVA_URL=$(curl -L "https://api.adoptium.net/v3/assets/latest/${JAVA_VERSION}/hotspot?release=latest&jvm_impl=hotspot&vendor=adoptium&" | jq -r ".[] | select(.binary.image_type == \"${JAVA_IMAGE_TYPE}\" and .binary.os == \"windows\" and .binary.architecture == \"${JAVA_ARCH}\") | .binary.installer.link | .")
 pushd "${INSTALL_TEMPDIR}" > /dev/null 2>&1
 	curl -L -o "java.msi" "${JAVA_URL}"
 	msiexec /i "$(cygpath -w "${INSTALL_TEMPDIR}/java.msi")" INSTALLLEVEL=3 REINSTALLMODE=amus /passive
