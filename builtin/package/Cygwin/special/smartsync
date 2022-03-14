@@ -15,8 +15,8 @@ SELF=${SELF_DIR}/$(basename ${0})
 
 args_max 1
 
-SMARTSYNC_APPROX=$(curl -L "https://www.syntevo.com/smartsync/download/" 2> /dev/null | grep "Download SmartSync" | sed -e 's/.*Download SmartSync \([0-9.]*\).*/\1/')
-SMARTSYNC_LATEST=$(curl -L "https://www.syntevo.com/smartsync/download/" 2> /dev/null | grep "Version ${SMARTSYNC_APPROX}"| sed -e 's/.*Version \([0-9.]*\).*/\1/')
+SMARTSYNC_APPROX=$(curl -L "https://www.syntevo.com/smartsynchronize/download/" 2> /dev/null | grep "Download SmartSync" | sed -e 's/.*Download SmartSynchronize \([0-9.]*\).*/\1/')
+SMARTSYNC_LATEST=$(curl -L "https://www.syntevo.com/smartsynchronize/download/" 2> /dev/null | grep "Version ${SMARTSYNC_APPROX}"| sed -e 's/.*Version \([0-9.]*\).*/\1/')
 echo -e "${CFMT_INFO}Latest SmartSync is ${SMARTSYNC_LATEST}${CFMT_NORMAL}" >&2
 
 if [[ $# -eq 1 ]]; then
@@ -33,7 +33,7 @@ else
 	SMARTSYNC_VERSION="${SMARTSYNC_LATEST}"
 fi
 
-SMARTSYNC_INSTALLEDDIRS=("/cygdrive/c/Program Files (x86)/SmartSync" "/cygdrive/c/Program Files/SmartSync")
+SMARTSYNC_INSTALLEDDIRS=("/cygdrive/c/Program Files (x86)/SmartSynchronize" "/cygdrive/c/Program Files/SmartSynchronize")
 for SMARTSYNC_INSTALLEDDIR in "${SMARTSYNC_INSTALLEDDIRS[@]}"; do
 	if [ -d "${SMARTSYNC_INSTALLEDDIR}" ]; then
 		echo -e "${CFMT_INFO}SmartSync is already installed${CFMT_NORMAL}" >&2
@@ -47,14 +47,14 @@ install unzip unzip
 SMARTSYNC_MAJOR=$(echo "${SMARTSYNC_VERSION}" | sed -e 's/\..*//')
 SMARTSYNC_MAJORLATEST=$(echo "${SMARTSYNC_LATEST}" | sed -e 's/\..*//')
 if [[ ${SMARTSYNC_MAJOR} -ge ${SMARTSYNC_MAJORLATEST} ]]; then
-	SMARTSYNC_URL_PREFIX="https://www.syntevo.com/downloads/smartsync/"
+	SMARTSYNC_URL_PREFIX="https://www.syntevo.com/downloads/smartsynchronize/"
 else
-	SMARTSYNC_URL_PREFIX="https://www.syntevo.com/downloads/smartsync/archive/"
+	SMARTSYNC_URL_PREFIX="https://www.syntevo.com/downloads/smartsynchronize/archive/"
 fi
 if [[ ${SMARTSYNC_MAJOR} -ge 18 ]]; then
-	SMARTSYNC_URL_FILENAME="smartsync-win-$(echo "${SMARTSYNC_VERSION}" | sed -e 's/\./_/g').zip"
+	SMARTSYNC_URL_FILENAME="smartsynchronize-win-$(echo "${SMARTSYNC_VERSION}" | sed -e 's/\./_/g').zip"
 else
-	SMARTSYNC_URL_FILENAME="smartsync-win32-setup-jre-$(echo "${SMARTSYNC_VERSION}" | sed -e 's/\./_/g').zip"
+	SMARTSYNC_URL_FILENAME="smartsynchronize-win32-setup-jre-$(echo "${SMARTSYNC_VERSION}" | sed -e 's/\./_/g').zip"
 fi
 SMARTSYNC_URL="${SMARTSYNC_URL_PREFIX}/${SMARTSYNC_URL_FILENAME}"
 
