@@ -46,8 +46,10 @@ function sp_downloadsource() {
 		URL_ACTUAL="$(curl -L "${URL_MIRROR}" 2> /dev/null | grep -F 'click here' | sed -e 's/.*href="\([^"]*\)".*/\1/')"
 		
 		FILENAME="$(basename "${URL_ACTUAL}")"
-		curl -L "${URL_ACTUAL}" -o "${FILENAME}"
-		unzip "${FILENAME}" > /dev/null 2>&1
+		if [ ! -f "${FILENAME}" ]; then
+			curl -L "${URL_ACTUAL}" -o "${FILENAME}"
+		fi
+		unzip -o "${FILENAME}" > /dev/null 2>&1
 	popd > /dev/null 2>&1
 	find "${1}" -maxdepth 1 -type d -name "eclipse*"
 }

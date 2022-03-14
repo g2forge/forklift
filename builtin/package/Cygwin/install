@@ -20,11 +20,12 @@ args_min 1
 PACKAGES_CYGWIN=()
 for ARG in "$@"; do
 	SPECIALSCRIPT="${SELF_DIR}/special/${ARG}"
-    if [[ -x "${SPECIALSCRIPT}" ]]; then
-    	${SPECIALSCRIPT}
-    else
-    	PACKAGES_CYGWIN+=("${ARG}")
-    fi
+	if [[ -x "${SPECIALSCRIPT}" ]]; then
+		echo -e "${CFMT_INFO}Running special installer for ${ARG}${CFMT_NORMAL}" >&2
+		${SPECIALSCRIPT}
+	else
+		PACKAGES_CYGWIN+=("${ARG}")
+	fi
 done
 
 # Any non-special packages should be installed by the standard cygwin installer

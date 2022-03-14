@@ -27,9 +27,10 @@ FLGHJACK_POSTUPDATE=${FLGHJACK_SCRIPT}/post-update
 FLGHJACK_PREDELETE=${FLGHJACK_SCRIPT}/pre-delete
 FLGHJACK_POSTDELETE=${FLGHJACK_SCRIPT}/post-delete
 function flscript () {
-	SCRIPT="${1}"
+	SCRIPT="${2}"
 	# Figure out whether we need to change directories first
 	CHDIR=$([[ "$(dirname ${SCRIPT})" == "${FLGHJACK_SCRIPT}" ]] && echo 0 || echo 1)
+	echo -e "${CFMT_INFO}Running ${1} for ${WAREHOUSE}:${PALLET}:${VERSION}${CFMT_NORMAL}" >&2
 	[[ ${CHDIR} -eq 0 ]] || pushd ${CACHE_DIR} > /dev/null 2>&1
 	create_flbin_dir
 	[[ ! -x ${SCRIPT} ]] || FORKLIFT=${SELF_DIR}/../../../forklift WAREHOUSE="${WAREHOUSE}" PALLET="${PALLET}" VERSION="${VERSION}" FLBIN_DIR=${FLBIN_DIR} ${SCRIPT} >&2
@@ -110,7 +111,7 @@ function import () {
 			git config core.symlinks true >&2
 			git checkout -f >&2
 		fi
-		flscript ${FLGHJACK_POSTIMPORT}
+		flscript post-import ${FLGHJACK_POSTIMPORT}
 		popd > /dev/null 2>&1
 		echo -e "${CFMT_SUCCESS}Import successful${CFMT_NORMAL}!" >&2
 	else
@@ -123,9 +124,9 @@ function update () {
 	if [[ "${TRACKING}" != "" ]]; then
 		echo -e "${CFMT_INFO}Updating ${WAREHOUSE} ${PALLET} ${VERSION}${CFMT_NORMAL}" >&2
 		
-		flscript ${FLGHJACK_PREUPDATE}
+		flscript pre-update ${FLGHJACK_PREUPDATE}
 		git pull >&2
-		flscript ${FLGHJACK_POSTUPDATE}
+		flscript post-update ${FLGHJACK_POSTUPDATE}
 	else
 		echo -e "${CFMT_INFO}Skipping update of ${WAREHOUSE} ${PALLET} ${VERSION}, not tracking a branch${CFMT_NORMAL}" >&2
 	fi
@@ -162,7 +163,7 @@ case ${COMMAND} in
 	args_max 4
 	verify
 	echo -e "${CFMT_INFO}Deleting ${WAREHOUSE} ${PALLET} ${VERSION}${CFMT_NORMAL}" >&2
-	flscript ${CACHE_DIR}/${FLGHJACK_PREDELETE}
+	flscript pre-delete ${CACHE_DIR}/${FLGHJACK_PREDELETE}
 	if [[ -x "${CACHE_DIR}/${FLGHJACK_POSTDELETE}" ]]; then
 		TEMPSCRIPT=$(mktemp)
 		chmod +x ${TEMPSCRIPT}
